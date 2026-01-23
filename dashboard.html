@@ -1,0 +1,3080 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Aetheris AI Builder | Immersive Studio</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#137fec",
+              accent: "#00f2ff",
+              "background-light": "#f6f7f8",
+              "background-dark": "#050a15",
+              charcoal: "#0a0c10",
+              "navy-deep": "#050a15",
+              "flow-input": "#8b5cf6",
+              "flow-process": "#137fec",
+              "flow-output": "#10b981",
+              "flow-data": "#f59e0b",
+              "flow-config": "#ec4899",
+              "flow-decision": "#8b5cf6",
+            },
+            fontFamily: {
+              display: ["Space Grotesk", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        background: radial-gradient(
+          circle at 50% 50%,
+          #0d1525 0%,
+          #050a15 100%
+        );
+      }
+      .glass {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .glass-glow {
+        border: 1px solid rgba(0, 210, 255, 0.3);
+        box-shadow: 0 0 20px rgba(0, 210, 255, 0.1);
+      }
+      .hologram-glow {
+        box-shadow: 0 0 40px rgba(19, 127, 236, 0.3);
+      }
+      .canvas-grid {
+        background-image: linear-gradient(
+            rgba(255, 255, 255, 0.03) 1px,
+            transparent 1px
+          ),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 32px 32px;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+      }
+      .flow-node {
+        transition: all 0.3s ease;
+        cursor: move;
+      }
+      .flow-node:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      }
+      .flow-node.selected {
+        border-color: #00f2ff;
+        box-shadow: 0 0 0 2px rgba(0, 242, 255, 0.3);
+      }
+      .flow-connection {
+        pointer-events: none;
+      }
+      .connection-handle {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #137fec;
+        border: 2px solid #050a15;
+        cursor: crosshair;
+        transition: all 0.2s;
+      }
+      .connection-handle:hover {
+        transform: scale(1.3);
+        background: #00f2ff;
+      }
+      .dragging {
+        opacity: 0.7;
+      }
+      .drop-zone {
+        border: 2px dashed rgba(19, 127, 236, 0.3);
+        background: rgba(19, 127, 236, 0.05);
+      }
+      .drop-zone.active {
+        border-color: #137fec;
+        background: rgba(19, 127, 236, 0.1);
+      }
+      .node-tag {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 2px 12px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        z-index: 10;
+      }
+      .pulse-connection {
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% { opacity: 0.3; }
+        50% { opacity: 1; }
+        100% { opacity: 0.3; }
+      }
+      .animated-path {
+        stroke-dasharray: 5;
+        animation: dash 20s linear infinite;
+      }
+      @keyframes dash {
+        to {
+          stroke-dashoffset: 1000;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-background-dark text-white font-display min-h-screen">
+    <!-- Agent Builder Dashboard (Page 0) -->
+    <div id="page0" class="min-h-screen">
+      <!-- Top Navigation Bar -->
+      <header
+        class="fixed top-0 w-full z-50 border-b border-white/10 bg-background-dark/80 backdrop-blur-md px-8 py-4"
+      >
+        <div class="max-w-[1600px] mx-auto flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="size-8 text-primary">
+              <svg
+                fill="none"
+                viewBox="0 0 48 48"
+                xmlns="https://www.ikontel.com/assets/img/logo/iKonTel-logo.png"
+              >
+                <path
+                  d="M13.8261 17.4264C16.7203 18.1174 20.2244 18.5217 24 18.5217C27.7756 18.5217 31.2797 18.1174 34.1739 17.4264C36.9144 16.7722 39.9967 15.2331 41.3563 14.1648L24.8486 40.6391C24.4571 41.267 23.5429 41.267 23.1514 40.6391L6.64374 14.1648C8.00331 15.2331 11.0856 16.7722 13.8261 17.4264Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+            <h2 class="text-xl font-bold tracking-tighter">IKONTEL</h2>
+          </div>
+          <div
+            class="flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-white/60"
+          >
+            <a
+              class="hover:text-primary transition-colors"
+              href="#"
+              onclick="showPage(0)"
+              >Agent Builder</a
+            >
+            <a class="hover:text-primary transition-colors" href="#"
+              >Neural Assets</a
+            >
+            <a class="hover:text-primary transition-colors" href="#"
+              >Deployments</a
+            >
+          </div>
+          <div class="flex items-center gap-4">
+            <div
+              class="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/10"
+            >
+              <span class="material-symbols-outlined text-sm text-primary"
+                >bolt</span
+              >
+              <span class="text-xs font-bold uppercase">Pro Node Active</span>
+            </div>
+            <button
+              class="size-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-xl"
+                >notifications</span
+              >
+            </button>
+            <div
+              class="size-10 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined">person</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="relative pt-24 min-h-screen flex">
+        <!-- Left: Persistent Radial Progress Menu -->
+        <aside
+          class="fixed left-0 top-24 bottom-0 w-32 flex flex-col items-center justify-center z-40"
+        >
+          <div class="relative flex flex-col items-center gap-12">
+            <!-- Vertical Line Connector -->
+            <div class="absolute w-[2px] h-full bg-white/5 -z-10"></div>
+            <!-- Steps -->
+            <div class="group relative cursor-pointer" onclick="showPage(0)">
+              <div
+                class="size-14 rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center shadow-[0_0_15px_rgba(19,127,236,0.4)]"
+              >
+                <span class="material-symbols-outlined text-primary"
+                  >dashboard</span
+                >
+              </div>
+              <span
+                class="absolute left-16 top-4 text-[10px] uppercase tracking-tighter text-primary font-bold"
+                >Dashboard</span
+              >
+            </div>
+            <div
+              class="group relative cursor-pointer"
+              onclick="startAgentCreation()"
+            >
+              <div
+                class="size-12 rounded-full border border-white/20 bg-background-dark flex items-center justify-center hover:border-primary transition-all"
+              >
+                <span
+                  class="material-symbols-outlined text-white/40 group-hover:text-primary"
+                  >fingerprint</span
+                >
+              </div>
+              <span
+                class="absolute left-16 top-3 text-[10px] uppercase tracking-tighter text-white/40 group-hover:text-white"
+                >Identity</span
+              >
+            </div>
+            <div class="group relative cursor-pointer" onclick="showPage(2)">
+              <div
+                class="size-12 rounded-full border border-white/20 bg-background-dark flex items-center justify-center hover:border-primary transition-all"
+              >
+                <span
+                  class="material-symbols-outlined text-white/40 group-hover:text-primary"
+                  >graphic_eq</span
+                >
+              </div>
+              <span
+                class="absolute left-16 top-3 text-[10px] uppercase tracking-tighter text-white/40 group-hover:text-white"
+                >Acoustics</span
+              >
+            </div>
+            <div class="group relative cursor-pointer" onclick="showPage(3)">
+              <div
+                class="size-12 rounded-full border border-white/20 bg-background-dark flex items-center justify-center hover:border-primary transition-all"
+              >
+                <span
+                  class="material-symbols-outlined text-white/40 group-hover:text-primary"
+                  >account_tree</span
+                >
+              </div>
+              <span
+                class="absolute left-16 top-3 text-[10px] uppercase tracking-tighter text-white/40 group-hover:text-white"
+                >Architecture</span
+              >
+            </div>
+          </div>
+        </aside>
+
+        <!-- Center: Main Dashboard Content -->
+        <section class="flex-1 ml-32 mr-[400px] px-12 pb-20 overflow-y-auto">
+          <!-- Page Heading Component -->
+          <div class="mb-12 mt-8">
+            <div class="flex items-center gap-3 mb-4">
+              <span
+                class="text-xs uppercase tracking-[0.4em] text-primary font-bold"
+                >Agent Studio</span
+              >
+              <div class="h-[1px] w-12 bg-primary"></div>
+            </div>
+            <h1 class="text-5xl font-black tracking-tight mb-4">
+              Agent Builder <span class="text-primary">Dashboard</span>
+            </h1>
+            <p class="text-white/50 text-lg max-w-xl">
+              Create, manage, and deploy intelligent AI agents with immersive
+              neural architecture.
+            </p>
+          </div>
+
+          <!-- Dashboard Stats Grid -->
+          <div class="grid grid-cols-4 gap-6 mb-12">
+            <div class="glass p-6 rounded-xl">
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs uppercase tracking-widest text-white/40"
+                  >Total Agents</span
+                >
+                <span class="material-symbols-outlined text-primary"
+                  >smart_toy</span
+                >
+              </div>
+              <p class="text-3xl font-bold">24</p>
+              <div class="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                <div class="h-full bg-primary w-[85%]"></div>
+              </div>
+            </div>
+            <div class="glass p-6 rounded-xl">
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs uppercase tracking-widest text-white/40"
+                  >Active Calls</span
+                >
+                <span class="material-symbols-outlined text-green-400"
+                  >call</span
+                >
+              </div>
+              <p class="text-3xl font-bold">142</p>
+              <div class="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                <div class="h-full bg-green-500 w-[92%]"></div>
+              </div>
+            </div>
+            <div class="glass p-6 rounded-xl">
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs uppercase tracking-widest text-white/40"
+                  >Success Rate</span
+                >
+                <span class="material-symbols-outlined text-accent"
+                  >trending_up</span
+                >
+              </div>
+              <p class="text-3xl font-bold">98.4%</p>
+              <div class="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                <div class="h-full bg-accent w-[98%]"></div>
+              </div>
+            </div>
+            <div class="glass p-6 rounded-xl">
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs uppercase tracking-widest text-white/40"
+                  >Avg Latency</span
+                >
+                <span class="material-symbols-outlined text-yellow-400"
+                  >speed</span
+                >
+              </div>
+              <p class="text-3xl font-bold">142ms</p>
+              <div class="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                <div class="h-full bg-yellow-500 w-[42%]"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="grid grid-cols-2 gap-8 mb-12">
+            <div class="glass p-8 rounded-xl">
+              <h3
+                class="text-xl font-bold mb-6 flex items-center gap-2 uppercase tracking-widest"
+              >
+                <span class="material-symbols-outlined text-primary"
+                  >add_circle</span
+                >
+                Create New Agent
+              </h3>
+              <p class="text-white/50 mb-6">
+                Build a custom AI agent from scratch or use templates
+              </p>
+              <button
+                onclick="startAgentCreation()"
+                class="w-full py-4 bg-primary hover:bg-blue-600 transition-colors rounded-xl font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2 group"
+              >
+                Start Creating
+                <span
+                  class="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform"
+                  >arrow_forward</span
+                >
+              </button>
+            </div>
+            <div class="glass p-8 rounded-xl">
+              <h3
+                class="text-xl font-bold mb-6 flex items-center gap-2 uppercase tracking-widest"
+              >
+                <span class="material-symbols-outlined text-primary"
+                  >folder</span
+                >
+                Browse Templates
+              </h3>
+              <p class="text-white/50 mb-6">
+                Select from pre-built agent templates for quick deployment
+              </p>
+              <button
+                onclick="browseTemplates()"
+                class="w-full py-4 border border-white/10 hover:bg-white/5 transition-colors rounded-xl font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2"
+              >
+                Explore Templates
+                <span class="material-symbols-outlined text-base"
+                  >folder_open</span
+                >
+              </button>
+            </div>
+          </div>
+
+          <!-- Recent Agents -->
+          <div class="glass p-8 rounded-xl">
+            <h3
+              class="text-xl font-bold mb-6 flex items-center gap-2 uppercase tracking-widest"
+            >
+              <span class="material-symbols-outlined text-primary"
+                >history</span
+              >
+              Recent Agents
+            </h3>
+            <div class="space-y-4">
+              <div
+                class="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10 hover:border-primary/40 transition-all cursor-pointer"
+              >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="size-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined text-primary"
+                      >smart_toy</span
+                    >
+                  </div>
+                  <div>
+                    <p class="font-bold">Elysian-4 Core</p>
+                    <p class="text-xs text-white/40">
+                      Customer Support • Updated 2h ago
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="text-[10px] px-2 py-1 rounded bg-green-500/20 text-green-500"
+                    >Active</span
+                  >
+                  <span class="material-symbols-outlined text-white/40"
+                    >chevron_right</span
+                  >
+                </div>
+              </div>
+              <div
+                class="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10 hover:border-primary/40 transition-all cursor-pointer"
+              >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="size-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined">smart_toy</span>
+                  </div>
+                  <div>
+                    <p class="font-bold">Nova-X Interface</p>
+                    <p class="text-xs text-white/40">
+                      Sales Assistant • Updated 1d ago
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="text-[10px] px-2 py-1 rounded bg-yellow-500/20 text-yellow-500"
+                    >Idle</span
+                  >
+                  <span class="material-symbols-outlined text-white/40"
+                    >chevron_right</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: Agent Hologram Preview -->
+        <aside
+          class="fixed right-0 top-24 bottom-0 w-[400px] p-8 border-l border-white/10 flex flex-col gap-6 bg-background-dark/50 backdrop-blur-xl"
+        >
+          <div class="flex-1 flex flex-col">
+            <div class="flex items-center justify-between mb-8">
+              <h2
+                class="text-xs font-bold uppercase tracking-[0.3em] text-white/60"
+              >
+                Live Preview
+              </h2>
+              <div class="flex items-center gap-2">
+                <div class="size-2 rounded-full bg-red-600 animate-pulse"></div>
+                <span class="text-[10px] font-bold text-red-600 uppercase"
+                  >Live</span
+                >
+              </div>
+            </div>
+            <!-- Hologram Display -->
+            <div
+              class="flex-1 glass rounded-2xl relative overflow-hidden flex items-center justify-center hologram-glow"
+            >
+              <!-- Background Grid -->
+              <div
+                class="absolute inset-0 opacity-20"
+                style="
+                  background-image: radial-gradient(
+                    circle at 2px 2px,
+                    rgba(19, 127, 236, 0.3) 1px,
+                    transparent 0
+                  );
+                  background-size: 24px 24px;
+                "
+              ></div>
+              <!-- Visual Rep of Agent -->
+              <div class="relative z-10 w-48 h-48">
+                <!-- Orbiting Rings -->
+                <div
+                  class="absolute inset-0 rounded-full border border-primary/20 animate-[spin_10s_linear_infinite]"
+                ></div>
+                <div
+                  class="absolute inset-4 rounded-full border border-primary/40 animate-[spin_6s_linear_infinite_reverse]"
+                ></div>
+                <!-- Core -->
+                <div
+                  class="absolute inset-12 rounded-full bg-gradient-to-tr from-primary to-blue-400 opacity-80 blur-xl"
+                ></div>
+                <div
+                  class="absolute inset-16 rounded-full glass border border-primary shadow-[0_0_30px_#137fec] flex items-center justify-center overflow-hidden"
+                >
+                  <span
+                    class="material-symbols-outlined text-4xl text-white animate-pulse"
+                    >face</span
+                  >
+                </div>
+              </div>
+              <!-- Tech Specs -->
+              <div
+                class="absolute bottom-6 left-6 text-[10px] space-y-1 text-white/40"
+              >
+                <p>AGENT READY</p>
+                <p>SYSTEM: OPTIMAL</p>
+                <p>CORE: AETHERIS-V2</p>
+              </div>
+            </div>
+            <div class="mt-8 space-y-4">
+              <!-- Progress Bar Component -->
+              <div class="flex flex-col gap-3 p-4 glass rounded-xl">
+                <div class="flex gap-6 justify-between">
+                  <p
+                    class="text-white text-sm font-medium leading-normal uppercase tracking-widest"
+                  >
+                    System Status
+                  </p>
+                  <p class="text-primary text-sm font-bold leading-normal">
+                    100%
+                  </p>
+                </div>
+                <div class="rounded-full bg-white/10 h-1.5 overflow-hidden">
+                  <div
+                    class="h-full rounded-full bg-primary shadow-[0_0_10px_#137fec]"
+                    style="width: 100%"
+                  ></div>
+                </div>
+                <p
+                  class="text-white/40 text-[10px] font-normal leading-normal uppercase"
+                >
+                  All Systems Operational
+                </p>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <button
+                  onclick="showPage(0)"
+                  class="py-3 border border-white/10 hover:bg-white/5 transition-colors rounded-xl font-bold uppercase tracking-widest text-xs text-white/60"
+                >
+                  Quick Start
+                </button>
+                <button
+                  onclick="documentation()"
+                  class="py-3 bg-white/10 hover:bg-white/20 transition-colors rounded-xl font-bold uppercase tracking-widest text-xs"
+                >
+                  Docs
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Dynamic Glow Background Element -->
+        <div
+          class="fixed -bottom-48 -left-48 size-[600px] bg-primary/20 rounded-full blur-[150px] -z-10"
+        ></div>
+        <div
+          class="fixed -top-48 -right-48 size-[600px] bg-blue-900/10 rounded-full blur-[150px] -z-10"
+        ></div>
+      </main>
+    </div>
+
+    <!-- Agent Type Selection Modal -->
+    <div
+      id="agent-type-modal"
+      class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-xl"
+    >
+      <div
+        class="w-full max-w-4xl glass rounded-3xl overflow-hidden border border-white/20"
+      >
+        <div
+          class="p-8 border-b border-white/10 flex items-center justify-between"
+        >
+          <h2 class="text-2xl font-bold">Select Agent Type</h2>
+          <button
+            onclick="closeAllModals()"
+            class="text-white/40 hover:text-white"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="p-8">
+          <div class="grid grid-cols-2 gap-6">
+            <div
+              onclick="selectAgentType('single')"
+              class="glass p-8 rounded-2xl cursor-pointer border border-white/10 hover:border-primary transition-all group"
+            >
+              <div
+                class="size-16 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+              >
+                <span class="material-symbols-outlined text-primary text-3xl"
+                  >text_fields</span
+                >
+              </div>
+              <h3 class="text-xl font-bold mb-3">Single Prompt Agent</h3>
+              <p class="text-white/50">
+                Create a focused agent for specific tasks with single-turn
+                interactions
+              </p>
+              <div class="mt-6 pt-6 border-t border-white/5">
+                <span class="text-xs text-primary font-bold uppercase"
+                  >Best for: Simple Q&A</span
+                >
+              </div>
+            </div>
+            <div
+              onclick="selectAgentType('conversational')"
+              class="glass p-8 rounded-2xl cursor-pointer border border-white/10 hover:border-primary transition-all group"
+            >
+              <div
+                class="size-16 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+              >
+                <span class="material-symbols-outlined text-primary text-3xl"
+                  >forum</span
+                >
+              </div>
+              <h3 class="text-xl font-bold mb-3">Conversational Flow Agent</h3>
+              <p class="text-white/50">
+                Create multi-turn conversational agents with complex interaction
+                flows
+              </p>
+              <div class="mt-6 pt-6 border-t border-white/5">
+                <span class="text-xs text-primary font-bold uppercase"
+                  >Best for: Customer Service</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="mt-8 flex justify-end gap-4">
+            <button
+              onclick="closeAllModals()"
+              class="px-6 py-3 border border-white/10 rounded-lg hover:bg-white/5"
+            >
+              Cancel
+            </button>
+            <button
+              id="next-to-quickstart"
+              onclick="showQuickStart()"
+              class="px-6 py-3 bg-primary hover:bg-primary/90 rounded-lg font-bold hidden"
+            >
+              Next: Quick Start
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Start Modal -->
+    <div
+      id="quickstart-modal"
+      class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-xl"
+    >
+      <div
+        class="w-full max-w-4xl glass rounded-3xl overflow-hidden border border-white/20"
+      >
+        <div
+          class="p-8 border-b border-white/10 flex items-center justify-between"
+        >
+          <h2 class="text-2xl font-bold">Quick Start Options</h2>
+          <button
+            onclick="closeAllModals()"
+            class="text-white/40 hover:text-white"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="p-8">
+          <div class="grid grid-cols-2 gap-6">
+            <div
+              onclick="selectQuickStart('scratch')"
+              class="glass p-8 rounded-2xl cursor-pointer border border-white/10 hover:border-primary transition-all group"
+            >
+              <div
+                class="size-16 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+              >
+                <span class="material-symbols-outlined text-primary text-3xl"
+                  >design_services</span
+                >
+              </div>
+              <h3 class="text-xl font-bold mb-3">Start from Scratch</h3>
+              <p class="text-white/50">
+                Build your agent completely from scratch with full customization
+              </p>
+              <div class="mt-6 pt-6 border-t border-white/5">
+                <span class="text-xs text-primary font-bold uppercase"
+                  >Full Control</span
+                >
+              </div>
+            </div>
+            <div
+              onclick="selectQuickStart('ai')"
+              class="glass p-8 rounded-2xl cursor-pointer border border-white/10 hover:border-primary transition-all group"
+            >
+              <div
+                class="size-16 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+              >
+                <span class="material-symbols-outlined text-primary text-3xl"
+                  >auto_awesome</span
+                >
+              </div>
+              <h3 class="text-xl font-bold mb-3">Create with AI</h3>
+              <p class="text-white/50">
+                Let AI help you create an optimized agent based on your
+                requirements
+              </p>
+              <div class="mt-6 pt-6 border-t border-white/5">
+                <span class="text-xs text-primary font-bold uppercase"
+                  >AI Assisted</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="mt-8 flex justify-end gap-4">
+            <button
+              onclick="showAgentTypeSelection()"
+              class="px-6 py-3 border border-white/10 rounded-lg hover:bg-white/5"
+            >
+              Back
+            </button>
+            <button
+              id="next-to-scratch"
+              onclick="showScratchCreation()"
+              class="px-6 py-3 bg-primary hover:bg-primary/90 rounded-lg font-bold hidden"
+            >
+              Next: Create from Scratch
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 1: Identity (Scratch Creation) -->
+    <div
+      id="page1"
+      class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-xl"
+    >
+      <div
+        class="w-full h-[90vh] glass rounded-3xl overflow-hidden flex relative border border-white/20"
+      >
+        <aside
+          class="w-24 md:w-32 border-r border-white/10 flex flex-col items-center py-12 gap-12 bg-black/20"
+        >
+          <div class="flex flex-col items-center gap-12 relative h-full">
+            <div class="absolute w-[1px] h-[70%] bg-white/10 top-6 -z-10"></div>
+            <div
+              class="group relative flex flex-col items-center cursor-pointer"
+            >
+              <div
+                class="size-14 rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center shadow-[0_0_20px_rgba(19,127,236,0.4)] transition-all"
+              >
+                <span class="material-symbols-outlined text-primary text-2xl"
+                  >fingerprint</span
+                >
+              </div>
+              <span
+                class="mt-3 text-[10px] uppercase tracking-widest text-primary font-bold"
+                >Identity</span
+              >
+            </div>
+            <div
+              class="group relative flex flex-col items-center cursor-pointer"
+            >
+              <div
+                class="size-12 rounded-full border border-white/20 bg-white/5 flex items-center justify-center hover:border-primary/50 transition-all"
+              >
+                <span class="material-symbols-outlined text-white/40"
+                  >psychology</span
+                >
+              </div>
+              <span
+                class="mt-3 text-[10px] uppercase tracking-widest text-white/40"
+                >Model</span
+              >
+            </div>
+            <div
+              class="group relative flex flex-col items-center cursor-pointer"
+              onclick="showPage(2)"
+            >
+              <div
+                class="size-12 rounded-full border border-white/20 bg-white/5 flex items-center justify-center hover:border-primary/50 transition-all"
+              >
+                <span class="material-symbols-outlined text-white/40"
+                  >graphic_eq</span
+                >
+              </div>
+              <span
+                class="mt-3 text-[10px] uppercase tracking-widest text-white/40"
+                >Voice</span
+              >
+            </div>
+            <div
+              class="group relative flex flex-col items-center cursor-pointer"
+              onclick="showPage(3)"
+            >
+              <div
+                class="size-12 rounded-full border border-white/20 bg-white/5 flex items-center justify-center hover:border-primary/50 transition-all"
+              >
+                <span class="material-symbols-outlined text-white/40"
+                  >settings_suggest</span
+                >
+              </div>
+              <span
+                class="mt-3 text-[10px] uppercase tracking-widest text-white/40"
+                >Behavior</span
+              >
+            </div>
+          </div>
+        </aside>
+        <div class="flex-1 flex flex-col overflow-hidden">
+          <header
+            class="h-24 px-12 border-b border-white/10 flex items-center justify-between bg-white/2"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="px-3 py-1 rounded bg-primary/20 border border-primary text-[10px] font-bold tracking-[0.2em] text-primary"
+              >
+                NODE 01
+              </div>
+              <h1 class="text-2xl font-bold tracking-tight">
+                Identity & <span class="text-primary">Model Selection</span>
+              </h1>
+            </div>
+            <div class="flex items-center gap-6">
+              <div class="flex flex-col items-end">
+                <span
+                  class="text-[10px] uppercase tracking-widest text-white/40"
+                  >Creation Progress</span
+                >
+                <div
+                  class="w-32 h-1 bg-white/10 rounded-full mt-1 overflow-hidden"
+                >
+                  <div class="h-full bg-primary w-1/4"></div>
+                </div>
+              </div>
+              <button
+                onclick="closeAllModals()"
+                class="text-white/40 hover:text-white transition-colors"
+              >
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          </header>
+          <main class="flex-1 overflow-y-auto p-12 custom-scrollbar">
+            <div class="max-w-4xl mx-auto space-y-12 pb-12">
+              <section class="space-y-6">
+                <div class="flex items-center gap-3">
+                  <span class="size-2 rounded-full bg-primary"></span>
+                  <h2
+                    class="text-sm font-bold uppercase tracking-widest text-white/80"
+                  >
+                    Agent Identity
+                  </h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div class="space-y-2">
+                    <label
+                      class="text-xs uppercase tracking-widest text-white/40 font-bold px-1"
+                      >Agent Designation</label
+                    >
+                    <input
+                      id="agent-name"
+                      class="w-full bg-[#17181a] border border-white/10 rounded-xl px-4 py-4 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-white/10 text-lg"
+                      placeholder="e.g. Aetheris-One"
+                      type="text"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label
+                      class="text-xs uppercase tracking-widest text-white/40 font-bold px-1"
+                      >Industry Context</label
+                    >
+                    <div class="relative">
+                      <select
+                        id="industry"
+                        class="w-full bg-[#17181a] border border-white/10 rounded-xl px-4 py-4 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none transition-all text-white/80"
+                      >
+                        <option>Select Industry</option>
+                        <option>FinTech / Banking</option>
+                        <option>Healthcare / BioTech</option>
+                        <option>E-commerce / Retail</option>
+                        <option>Creative Services</option>
+                        <option>Education</option>
+                        <option>Real Estate</option>
+                        <option>Travel & Hospitality</option>
+                        <option>Technology</option>
+                      </select>
+                      <span
+                        class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40"
+                        >expand_more</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label
+                    class="text-xs uppercase tracking-widest text-white/40 font-bold px-1"
+                    >Use Cases</label
+                  >
+                  <div class="relative">
+                    <select
+                      id="use-case"
+                      class="w-full bg-[#17181a] border border-white/10 rounded-xl px-4 py-4 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none transition-all text-white/80"
+                    >
+                      <option>Select Use Case</option>
+                      <option>Customer Support</option>
+                      <option>Sales & Lead Generation</option>
+                      <option>Technical Support</option>
+                      <option>Appointment Scheduling</option>
+                      <option>Information Gathering</option>
+                      <option>Product Recommendations</option>
+                      <option>Feedback Collection</option>
+                      <option>Survey Administration</option>
+                    </select>
+                    <span
+                      class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40"
+                      >expand_more</span
+                    >
+                  </div>
+                </div>
+                <div class="space-y-3">
+                  <label
+                    class="text-xs uppercase tracking-widest text-white/40 font-bold px-1"
+                    >Active Specializations</label
+                  >
+                  <div
+                    class="flex flex-wrap gap-2"
+                    id="specializations-container"
+                  >
+                    <div
+                      class="bg-primary/20 border border-primary/50 text-primary px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2"
+                    >
+                      Customer Support
+                      <span
+                        onclick="removeSpecialization(this)"
+                        class="material-symbols-outlined text-sm cursor-pointer"
+                        >close</span
+                      >
+                    </div>
+                    <div
+                      class="bg-primary/20 border border-primary/50 text-primary px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2"
+                    >
+                      Data Analysis
+                      <span
+                        onclick="removeSpecialization(this)"
+                        class="material-symbols-outlined text-sm cursor-pointer"
+                        >close</span
+                      >
+                    </div>
+                    <div
+                      onclick="addSpecialization()"
+                      class="bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-white/30 px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 cursor-pointer transition-all"
+                    >
+                      + Add Focus Area
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section class="space-y-6">
+                <div class="flex items-center gap-3">
+                  <span class="size-2 rounded-full bg-primary"></span>
+                  <h2
+                    class="text-sm font-bold uppercase tracking-widest text-white/80"
+                  >
+                    Neural Engine Selection
+                  </h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div
+                    onclick="selectEngine('gpt4')"
+                    class="glass glass-card p-6 rounded-2xl cursor-pointer border border-white/10 hover:border-primary relative group"
+                  >
+                    <div
+                      id="gpt4-check"
+                      class="absolute top-4 right-4 text-primary hidden"
+                    >
+                      <span class="material-symbols-outlined text-xl"
+                        >check_circle</span
+                      >
+                    </div>
+                    <div
+                      class="size-12 mb-6 rounded-lg bg-white flex items-center justify-center overflow-hidden"
+                    >
+                      <img
+                        alt="GPT-4"
+                        class="w-8 h-8 opacity-80"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAk_d02gj8kpQc6jlmUeNxfDAkGNMOzndoDprxe-cDkZAnQwjYTUrzkjWUfL63DDaiggkirOntJ5LG_H9hPGWVIzRd1skMaQs8qs5-IipDhLbjoI5eyzYnwpFpxOP7WbuJt0yATTpO774zSmPi2F066j4YVvwRhcyP5zphcSxXuy0vRczkYJ3X82aMLQ_MFcSOnBaWosX0M27yb5bofCNIc5GvOEuVIcVPOe-kLfzxkFpbl9INfHrMUcWKtd4X488x3pmGjQToqqmf6"
+                      />
+                    </div>
+                    <h3 class="font-bold text-lg mb-1">GPT-4 Omni</h3>
+                    <p class="text-xs text-white/40 leading-relaxed">
+                      High reasoning, sophisticated conversational depth.
+                    </p>
+                    <div
+                      class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between"
+                    >
+                      <span class="text-[10px] text-primary font-bold uppercase"
+                        >Optimized</span
+                      >
+                      <span class="text-[10px] text-white/30 uppercase"
+                        >Latency: 12ms</span
+                      >
+                    </div>
+                  </div>
+                  <div
+                    onclick="selectEngine('gemini')"
+                    class="glass glass-card p-6 rounded-2xl cursor-pointer border border-white/10 hover:border-primary group transition-all"
+                  >
+                    <div
+                      id="gemini-check"
+                      class="absolute top-4 right-4 text-primary hidden"
+                    >
+                      <span class="material-symbols-outlined text-xl"
+                        >check_circle</span
+                      >
+                    </div>
+                    <div
+                      class="size-12 mb-6 rounded-lg bg-[#4285F4] flex items-center justify-center overflow-hidden"
+                    >
+                      <img
+                        alt="Gemini"
+                        class="w-8 h-8"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJMkPuq6bOMixFXjf7WL02ZrIWR3UKedk7QsWD5nYI3hKBgIkYUnM_vi0qaW-wW0T92VtNZGmtHQaRbQXoNuKJxjHj41gQbDBUZxGaMbgVBTNigAnhzXy0DbGiNR3N7hNdossVxAGPzlxrLjWrsz52WZteLXXrIUuu9xwzIO8qVea1yMYAWS6xD1p4CJq0JTg3KitRSgFtQY4CqZxFj8bV6ka4_UpV0Isx4vXP4nRfAGvS43Zr7KPtTxthbqpLHkq_LjPPkTIGFOie"
+                      />
+                    </div>
+                    <h3
+                      class="font-bold text-lg mb-1 text-white/80 group-hover:text-white transition-colors"
+                    >
+                      Gemini Pro
+                    </h3>
+                    <p class="text-xs text-white/40 leading-relaxed">
+                      Massive context window & multimodal processing.
+                    </p>
+                    <div
+                      class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between"
+                    >
+                      <span
+                        class="text-[10px] text-white/30 font-bold uppercase"
+                        >Standard</span
+                      >
+                      <span class="text-[10px] text-white/30 uppercase"
+                        >Latency: 18ms</span
+                      >
+                    </div>
+                  </div>
+                  <div
+                    onclick="selectEngine('claude')"
+                    class="glass glass-card p-6 rounded-2xl cursor-pointer border border-white/10 hover:border-primary group transition-all"
+                  >
+                    <div
+                      id="claude-check"
+                      class="absolute top-4 right-4 text-primary hidden"
+                    >
+                      <span class="material-symbols-outlined text-xl"
+                        >check_circle</span
+                      >
+                    </div>
+                    <div
+                      class="size-12 mb-6 rounded-lg bg-[#D97757] flex items-center justify-center overflow-hidden"
+                    >
+                      <img
+                        alt="Claude"
+                        class="w-8 h-8"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAL1SzlFHNC_HPEyoPU7aa-37fpOYm8V10smhK_7IXdawVI2DWhEBXif4Nuks2b9nymuXhTcO9h7HjLSWb8Y3QXopfKzO2B_Q-cj7uXYGtwkMSfklw5HskjR9CTKNvBC3JDWPAgX1qMIMw4RKpZAQ2wNDeBZQM8gIaRxl1D7Pv5uyUZAwCnCw5CWX-BCODOxqMEvDvMB3WQwzeJi3DcvLmPmoKQrNZuHoMrD5m619fPIY350y-e_IcmlK8_ikmGaZa4Pi-CXA5GEGoH"
+                      />
+                    </div>
+                    <h3
+                      class="font-bold text-lg mb-1 text-white/80 group-hover:text-white transition-colors"
+                    >
+                      Claude 3 Opus
+                    </h3>
+                    <p class="text-xs text-white/40 leading-relaxed">
+                      Articulate, nuanced, and safety-focused logic.
+                    </p>
+                    <div
+                      class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between"
+                    >
+                      <span
+                        class="text-[10px] text-white/30 font-bold uppercase"
+                        >Elite</span
+                      >
+                      <span class="text-[10px] text-white/30 uppercase"
+                        >Latency: 24ms</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label
+                    class="text-xs uppercase tracking-widest text-white/40 font-bold px-1"
+                    >Language</label
+                  >
+                  <div class="relative">
+                    <select
+                      id="language"
+                      class="w-full bg-[#17181a] border border-white/10 rounded-xl px-4 py-4 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none transition-all text-white/80"
+                    >
+                      <option>English (US)</option>
+                      <option>English (UK)</option>
+                      <option>Spanish</option>
+                      <option>French</option>
+                      <option>German</option>
+                      <option>Japanese</option>
+                      <option>Chinese (Mandarin)</option>
+                      <option>Hindi</option>
+                    </select>
+                    <span
+                      class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40"
+                      >expand_more</span
+                    >
+                  </div>
+                </div>
+              </section>
+            </div>
+          </main>
+          <footer
+            class="h-24 px-12 border-t border-white/10 flex items-center justify-between bg-black/20"
+          >
+            <button
+              onclick="showPage(0)"
+              class="px-8 py-3 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 font-bold uppercase tracking-widest text-xs transition-all"
+            >
+              Back to Dashboard
+            </button>
+            <div class="flex items-center gap-4">
+              <button
+                onclick="saveDraft()"
+                class="px-6 py-3 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 font-bold uppercase tracking-widest text-xs transition-all"
+              >
+                Save Draft
+              </button>
+              <button
+                onclick="showPage(2)"
+                class="px-10 py-4 bg-primary hover:bg-blue-600 rounded-xl font-bold uppercase tracking-[0.2em] text-sm shadow-[0_0_20px_rgba(19,127,236,0.3)] flex items-center gap-3 transition-all"
+              >
+                Proceed to Voice
+                <span class="material-symbols-outlined text-lg"
+                  >arrow_forward</span
+                >
+              </button>
+            </div>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 2: Voice & Acoustics -->
+    <div id="page2" class="hidden min-h-screen">
+      <!-- Voice & Acoustics page content (same as your provided design) -->
+      <header
+        class="fixed top-0 w-full z-50 border-b border-white/10 bg-background-dark/80 backdrop-blur-md px-8 py-4"
+      >
+        <div class="max-w-[1600px] mx-auto flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="size-8 text-primary">
+              <svg
+                fill="none"
+                viewBox="0 0 48 48"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M13.8261 17.4264C16.7203 18.1174 20.2244 18.5217 24 18.5217C27.7756 18.5217 31.2797 18.1174 34.1739 17.4264C36.9144 16.7722 39.9967 15.2331 41.3563 14.1648L24.8486 40.6391C24.4571 41.267 23.5429 41.267 23.1514 40.6391L6.64374 14.1648C8.00331 15.2331 11.0856 16.7722 13.8261 17.4264Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+            <h2 class="text-xl font-bold tracking-tighter">AETHERIS STUDIO</h2>
+          </div>
+          <div
+            class="flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-white/60"
+          >
+            <a
+              class="hover:text-primary transition-colors"
+              href="#"
+              onclick="showPage(0)"
+              >Agent Builder</a
+            >
+            <a class="hover:text-primary transition-colors" href="#"
+              >Neural Assets</a
+            >
+            <a class="hover:text-primary transition-colors" href="#"
+              >Deployments</a
+            >
+          </div>
+          <div class="flex items-center gap-4">
+            <div
+              class="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/10"
+            >
+              <span class="material-symbols-outlined text-sm text-primary"
+                >bolt</span
+              >
+              <span class="text-xs font-bold uppercase">Pro Node Active</span>
+            </div>
+            <button
+              class="size-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-xl"
+                >notifications</span
+              >
+            </button>
+            <div
+              class="size-10 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined">person</span>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main class="relative pt-24 min-h-screen flex">
+        <aside
+          class="fixed left-0 top-24 bottom-0 w-32 flex flex-col items-center justify-center z-40"
+        >
+          <div class="relative flex flex-col items-center gap-12">
+            <div class="absolute w-[2px] h-full bg-white/5 -z-10"></div>
+            <div class="group relative cursor-pointer" onclick="showPage(0)">
+              <div
+                class="size-12 rounded-full border border-white/20 bg-background-dark flex items-center justify-center hover:border-primary transition-all"
+              >
+                <span
+                  class="material-symbols-outlined text-white/40 group-hover:text-primary"
+                  >dashboard</span
+                >
+              </div>
+              <span
+                class="absolute left-16 top-3 text-[10px] uppercase tracking-tighter text-white/40 group-hover:text-white"
+                >Dashboard</span
+              >
+            </div>
+            <div class="group relative cursor-pointer" onclick="showPage(1)">
+              <div
+                class="size-12 rounded-full border border-white/20 bg-background-dark flex items-center justify-center hover:border-primary transition-all"
+              >
+                <span
+                  class="material-symbols-outlined text-white/40 group-hover:text-primary"
+                  >fingerprint</span
+                >
+              </div>
+              <span
+                class="absolute left-16 top-3 text-[10px] uppercase tracking-tighter text-white/40 group-hover:text-white"
+                >Identity</span
+              >
+            </div>
+            <div class="group relative cursor-pointer">
+              <div
+                class="size-14 rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center shadow-[0_0_15px_rgba(19,127,236,0.4)]"
+              >
+                <span class="material-symbols-outlined text-primary"
+                  >graphic_eq</span
+                >
+              </div>
+              <span
+                class="absolute left-16 top-4 text-[10px] uppercase tracking-tighter text-primary font-bold"
+                >Acoustics</span
+              >
+            </div>
+            <div class="group relative cursor-pointer" onclick="showPage(3)">
+              <div
+                class="size-12 rounded-full border border-white/20 bg-background-dark flex items-center justify-center hover:border-primary transition-all"
+              >
+                <span
+                  class="material-symbols-outlined text-white/40 group-hover:text-primary"
+                  >account_tree</span
+                >
+              </div>
+              <span
+                class="absolute left-16 top-3 text-[10px] uppercase tracking-tighter text-white/40 group-hover:text-white"
+                >Architecture</span
+              >
+            </div>
+          </div>
+        </aside>
+        <section class="flex-1 ml-32 mr-[400px] px-12 pb-20 overflow-y-auto">
+          <div class="mb-12 mt-8">
+            <div class="flex items-center gap-3 mb-4">
+              <span
+                class="text-xs uppercase tracking-[0.4em] text-primary font-bold"
+                >Node 02</span
+              >
+              <div class="h-[1px] w-12 bg-primary"></div>
+            </div>
+            <h1 class="text-5xl font-black tracking-tight mb-4">
+              Voice &amp; Engine <span class="text-primary">Synthesis</span>
+            </h1>
+            <p class="text-white/50 text-lg max-w-xl">
+              Configure the neural pathways for auditory resonance and cognitive
+              execution. Select a voice core and model architecture.
+            </p>
+          </div>
+          <div class="grid grid-cols-1 gap-8">
+            <div class="glass p-8 rounded-xl relative overflow-hidden group">
+              <div
+                class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity"
+              >
+                <span class="material-symbols-outlined text-6xl"
+                  >record_voice_over</span
+                >
+              </div>
+              <h3
+                class="text-xl font-bold mb-6 flex items-center gap-2 uppercase tracking-widest"
+              >
+                <span class="material-symbols-outlined text-primary"
+                  >settings_voice</span
+                >
+                Neural Voice Core
+              </h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div
+                  id="voice-elysian"
+                  onclick="selectVoice('elysian')"
+                  class="flex items-center justify-between p-4 rounded-lg bg-primary/20 border border-primary/40 cursor-pointer hover:scale-[1.02] transition-all"
+                >
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="size-12 rounded-full border-2 border-primary p-0.5 overflow-hidden"
+                    >
+                      <img
+                        alt="Neural Voice Profile Alpha"
+                        class="w-full h-full"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX77Fe_ubj6U_YOpjoLmjmR_8uNPdW6g7tKG-YGqMShdTfmPb4k7IA_6n9Y4YHH0gjcjYVECdGLvbyloIF_0tkKHSO-4R_g2yEtssSq-RhS455lSxdoPMN7KvroqFIfOEktKlTu8gyUp6SCZt6qRv5hTZ17JMaA8RntmiaBgKxTDW84nmiamJTX6OqxhYN5PIOo8cA6bTalehX1iFzsgoDAGlhPZd4q9hfYoRM3t9wp-gq4_YcqiwN5y0Q6HMjwSFgu3P9qmetROki"
+                      />
+                    </div>
+                    <div>
+                      <p class="font-bold">Elysian-4</p>
+                      <p class="text-xs text-primary">Sultry • Professional</p>
+                    </div>
+                  </div>
+                  <button
+                    class="size-8 rounded-full bg-primary flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined text-sm"
+                      >play_arrow</span
+                    >
+                  </button>
+                </div>
+                <div
+                  id="voice-nova"
+                  onclick="selectVoice('nova')"
+                  class="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10 hover:border-primary/40 transition-all cursor-pointer"
+                >
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="size-12 rounded-full border border-white/20 p-0.5 overflow-hidden"
+                    >
+                      <img
+                        alt="Neural Voice Profile Beta"
+                        class="w-full h-full"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCya_Kv4kb51khEd3uiCb-glO-wNpaQdqVOuU49PTX-208y-OzP-edONXco32RPgwQCwKQ9jTJ3nymbdzaQsSNzXOmRP4MOwS2INgJ9E0lBjE5O6HgycqAcguLqRgSeHFCXHLAcYai1yygIUwXuudeX7HA-dHaMPV22fHsJYqCFoqv7M3tCE9f9JU1P0bz35I6mAwwVDOTjwoSFQ_c9T-1d5DdK0i02c7k6ld5XI_GUgtKSLPeGvvpz7i-hJM7FmdKuGp7LfZIZYq7Y"
+                      />
+                    </div>
+                    <div>
+                      <p class="font-bold">Nova-X</p>
+                      <p class="text-xs text-white/40">Dynamic • Energetic</p>
+                    </div>
+                  </div>
+                  <button
+                    class="size-8 rounded-full bg-white/10 flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined text-sm"
+                      >play_arrow</span
+                    >
+                  </button>
+                </div>
+              </div>
+              <div class="mt-4 space-y-2">
+                <label
+                  class="text-xs uppercase tracking-widest text-white/40 font-bold px-1"
+                  >Select Language</label
+                >
+                <div class="relative">
+                  <select
+                    id="voice-language"
+                    class="w-full bg-[#17181a] border border-white/10 rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none transition-all text-white/80"
+                  >
+                    <option>English (US)</option>
+                    <option>English (UK)</option>
+                    <option>Spanish</option>
+                    <option>French</option>
+                    <option>German</option>
+                    <option>Japanese</option>
+                  </select>
+                  <span
+                    class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40"
+                    >expand_more</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="glass p-8 rounded-xl">
+              <h3
+                class="text-xl font-bold mb-6 flex items-center gap-2 uppercase tracking-widest"
+              >
+                <span class="material-symbols-outlined text-primary"
+                  >waves</span
+                >
+                Ambient Soundscape
+              </h3>
+              <div
+                class="w-full h-32 bg-background-dark/50 rounded-lg flex items-center justify-center relative overflow-hidden border border-white/5"
+              >
+                <svg
+                  class="w-full h-full px-4"
+                  preserveAspectRatio="none"
+                  viewBox="0 0 400 100"
+                >
+                  <path
+                    class="opacity-80"
+                    d="M0 50 Q 50 10, 100 50 T 200 50 T 300 50 T 400 50"
+                    fill="none"
+                    stroke="#137fec"
+                    stroke-width="2"
+                  >
+                    <animate
+                      attributeName="d"
+                      dur="3s"
+                      repeatCount="indefinite"
+                      values="M0 50 Q 50 10, 100 50 T 200 50 T 300 50 T 400 50; M0 50 Q 50 90, 100 50 T 200 50 T 300 50 T 400 50; M0 50 Q 50 10, 100 50 T 200 50 T 300 50 T 400 50"
+                    ></animate>
+                  </path>
+                  <path
+                    class="opacity-30"
+                    d="M0 50 Q 75 20, 150 50 T 300 50 T 450 50"
+                    fill="none"
+                    stroke="#137fec"
+                    stroke-width="1"
+                  >
+                    <animate
+                      attributeName="d"
+                      dur="5s"
+                      repeatCount="indefinite"
+                      values="M0 50 Q 75 20, 150 50 T 300 50 T 450 50; M0 50 Q 75 80, 150 50 T 300 50 T 450 50; M0 50 Q 75 20, 150 50 T 300 50 T 450 50"
+                    ></animate>
+                  </path>
+                </svg>
+                <div
+                  class="absolute inset-0 flex items-center justify-between px-10"
+                >
+                  <div
+                    id="current-soundscape"
+                    class="bg-primary/20 backdrop-blur-md border border-primary px-3 py-1 rounded text-[10px] font-bold"
+                  >
+                    CYBERPUNK CITY AMBIENT
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      class="size-6 rounded bg-white/20 border border-white/30 text-[10px]"
+                    >
+                      FIX
+                    </button>
+                    <button
+                      class="size-6 rounded bg-white/10 border border-white/20 text-[10px]"
+                    >
+                      MOD
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="grid grid-cols-4 gap-4 mt-6">
+                <div
+                  onclick="selectSoundscape('office')"
+                  class="flex flex-col items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5"
+                >
+                  <div
+                    class="size-10 rounded bg-primary/20 border border-primary flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined text-primary"
+                      >apartment</span
+                    >
+                  </div>
+                  <span class="text-[10px] uppercase font-bold text-primary"
+                    >Office</span
+                  >
+                </div>
+                <div
+                  onclick="selectSoundscape('nature')"
+                  class="flex flex-col items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5 opacity-40 hover:opacity-100"
+                >
+                  <div
+                    class="size-10 rounded bg-white/10 border border-white/20 flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined">nature</span>
+                  </div>
+                  <span class="text-[10px] uppercase font-bold">Nature</span>
+                </div>
+                <div
+                  onclick="selectSoundscape('scifi')"
+                  class="flex flex-col items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5 opacity-40 hover:opacity-100"
+                >
+                  <div
+                    class="size-10 rounded bg-white/10 border border-white/20 flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined">rocket_launch</span>
+                  </div>
+                  <span class="text-[10px] uppercase font-bold">Sci-Fi</span>
+                </div>
+                <div
+                  onclick="selectSoundscape('lofi')"
+                  class="flex flex-col items-center gap-2 cursor-pointer p-2 rounded hover:bg-white/5 opacity-40 hover:opacity-100"
+                >
+                  <div
+                    class="size-10 rounded bg-white/10 border border-white/20 flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined">music_note</span>
+                  </div>
+                  <span class="text-[10px] uppercase font-bold">Lofi</span>
+                </div>
+              </div>
+            </div>
+            <div class="glass p-8 rounded-xl flex items-center justify-between">
+              <div>
+                <h4 class="font-bold text-lg">
+                  Mute User Until First Bot Response
+                </h4>
+                <p class="text-sm text-white/50">
+                  Suppress user microphone input until the agent generates its
+                  first response.
+                </p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  id="mute-toggle"
+                  checked
+                  type="checkbox"
+                  class="sr-only peer"
+                />
+                <div
+                  class="w-14 h-7 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary shadow-[0_0_10px_rgba(19,127,236,0.5)]"
+                ></div>
+              </label>
+            </div>
+            <div class="glass p-8 rounded-xl">
+              <h3
+                class="text-xl font-bold mb-6 flex items-center gap-2 uppercase tracking-widest"
+              >
+                <span class="material-symbols-outlined text-primary">rule</span>
+                Call Actions & Success Matrix
+              </h3>
+              <div class="grid grid-cols-2 gap-6">
+                <div>
+                  <label
+                    class="text-xs uppercase tracking-widest text-white/40 font-bold px-1 mb-2 block"
+                    >Call Actions</label
+                  >
+                  <select
+                    id="call-actions"
+                    class="w-full bg-[#17181a] border border-white/10 rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none transition-all text-white/80"
+                  >
+                    <option>Enable All Actions</option>
+                    <option>Transfer to Human Agent</option>
+                    <option>Schedule Callback</option>
+                    <option>Collect Payment</option>
+                    <option>Send Information</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    class="text-xs uppercase tracking-widest text-white/40 font-bold px-1 mb-2 block"
+                    >Success Metrics</label
+                  >
+                  <select
+                    id="success-metrics"
+                    class="w-full bg-[#17181a] border border-white/10 rounded-xl px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none transition-all text-white/80"
+                  >
+                    <option>Customer Satisfaction (CSAT)</option>
+                    <option>First Call Resolution (FCR)</option>
+                    <option>Average Handle Time (AHT)</option>
+                    <option>Conversion Rate</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <aside
+          class="fixed right-0 top-24 bottom-0 w-[400px] p-8 border-l border-white/10 flex flex-col gap-6 bg-background-dark/50 backdrop-blur-xl"
+        >
+          <div class="flex-1 flex flex-col">
+            <div class="flex items-center justify-between mb-8">
+              <h2
+                class="text-xs font-bold uppercase tracking-[0.3em] text-white/60"
+              >
+                Live Hologram
+              </h2>
+              <div class="flex items-center gap-2">
+                <div class="size-2 rounded-full bg-red-600 animate-pulse"></div>
+                <span class="text-[10px] font-bold text-red-600 uppercase"
+                  >Evolving...</span
+                  >
+                </div>
+              </div>
+              <div
+                class="flex-1 glass rounded-2xl relative overflow-hidden flex items-center justify-center hologram-glow"
+              >
+                <div
+                  class="absolute inset-0 opacity-20"
+                  style="
+                    background-image: radial-gradient(
+                      circle at 2px 2px,
+                      rgba(19, 127, 236, 0.3) 1px,
+                      transparent 0
+                    );
+                    background-size: 24px 24px;
+                  "
+                ></div>
+                <div class="relative z-10 w-48 h-48">
+                  <div
+                    class="absolute inset-0 rounded-full border border-primary/20 animate-[spin_10s_linear_infinite]"
+                  ></div>
+                  <div
+                    class="absolute inset-4 rounded-full border border-primary/40 animate-[spin_6s_linear_infinite_reverse]"
+                  ></div>
+                  <div
+                    class="absolute inset-12 rounded-full bg-gradient-to-tr from-primary to-blue-400 opacity-80 blur-xl"
+                  ></div>
+                  <div
+                    class="absolute inset-16 rounded-full glass border border-primary shadow-[0_0_30px_#137fec] flex items-center justify-center overflow-hidden"
+                  >
+                    <span
+                      class="material-symbols-outlined text-4xl text-white animate-pulse"
+                      >face</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="absolute bottom-6 left-6 text-[10px] space-y-1 text-white/40"
+                >
+                  <p>COORD: 40.7128° N, 74.0060° W</p>
+                  <p>LATENCY: 14MS</p>
+                  <p>CORE: ELX-V2.4</p>
+                </div>
+              </div>
+              <div class="mt-8 space-y-4">
+                <div class="flex flex-col gap-3 p-4 glass rounded-xl">
+                  <div class="flex gap-6 justify-between">
+                    <p
+                      class="text-white text-sm font-medium leading-normal uppercase tracking-widest"
+                    >
+                      Synthesis Progress
+                    </p>
+                    <p class="text-primary text-sm font-bold leading-normal">
+                      40%
+                    </p>
+                  </div>
+                  <div class="rounded-full bg-white/10 h-1.5 overflow-hidden">
+                    <div
+                      class="h-full rounded-full bg-primary shadow-[0_0_10px_#137fec]"
+                      style="width: 40%"
+                    ></div>
+                  </div>
+                  <p
+                    class="text-white/40 text-[10px] font-normal leading-normal uppercase"
+                  >
+                    Next Node: Neural Architecture
+                  </p>
+                </div>
+                <button
+                  onclick="showPage(3)"
+                  class="w-full py-4 bg-primary hover:bg-blue-600 transition-colors rounded-xl font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2 group"
+                >
+                  Proceed to Architecture
+                  <span
+                    class="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform"
+                    >arrow_forward</span
+                  >
+                </button>
+                <button
+                  onclick="saveAgent()"
+                  class="w-full py-3 border border-white/10 hover:bg-white/5 transition-colors rounded-xl font-bold uppercase tracking-widest text-xs text-white/60"
+                >
+                  Save Prototype
+                </button>
+              </div>
+            </div>
+          </aside>
+        </main>
+      </div>
+
+      <!-- Page 3: Neural Architecture & Logic Flow -->
+      <div id="page3" class="hidden min-h-screen">
+        <header
+          class="fixed top-0 w-full z-50 border-b border-white/10 bg-background-dark/80 backdrop-blur-md px-8 py-4"
+        >
+          <div class="max-w-[1600px] mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="size-8 text-primary">
+                <svg
+                  fill="none"
+                  viewBox="0 0 48 48"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M13.8261 17.4264C16.7203 18.1174 20.2244 18.5217 24 18.5217C27.7756 18.5217 31.2797 18.1174 34.1739 17.4264C36.9144 16.7722 39.9967 15.2331 41.3563 14.1648L24.8486 40.6391C24.4571 41.267 23.5429 41.267 23.1514 40.6391L6.64374 14.1648C8.00331 15.2331 11.0856 16.7722 13.8261 17.4264Z"
+                    fill="currentColor"
+                  ></path>
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold tracking-tighter">IKONTEL</h2>
+            </div>
+            <div
+              class="flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-white/60"
+            >
+              <a
+                class="hover:text-primary transition-colors"
+                href="#"
+                onclick="showPage(0)"
+                >Agent Builder</a
+              >
+              <a class="hover:text-primary transition-colors" href="#"
+                >Neural Assets</a
+              >
+              <a class="hover:text-primary transition-colors" href="#"
+                >Deployments</a
+              >
+            </div>
+            <div class="flex items-center gap-4">
+              <div
+                class="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/10"
+              >
+                <span class="material-symbols-outlined text-sm text-primary"
+                  >bolt</span
+                >
+                <span class="text-xs font-bold uppercase">Pro Node Active</span>
+              </div>
+              <button
+                onclick="completeAgent()"
+                class="px-6 py-2 bg-primary hover:bg-blue-600 rounded-lg font-bold uppercase tracking-widest text-xs transition-all flex items-center gap-2"
+              >
+                <span class="material-symbols-outlined text-sm"
+                  >rocket_launch</span
+                >
+                Deploy Agent
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main class="relative pt-24 min-h-screen flex">
+          <!-- Left Sidebar: Component Library & Configuration -->
+          <aside
+            class="fixed left-0 top-24 bottom-0 w-80 border-r border-white/10 bg-background-dark/50 backdrop-blur-xl p-6 overflow-y-auto custom-scrollbar"
+          >
+            <div class="mb-8">
+              <h3 class="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">widgets</span>
+                Configuration Flow
+              </h3>
+              
+              <!-- Configuration Steps Timeline -->
+              <div class="space-y-4 mb-8">
+                <div class="relative pl-6">
+                  <div class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary/30"></div>
+                  <div class="absolute left-[-4px] top-2 size-2 rounded-full bg-primary"></div>
+                  <div class="glass p-4 rounded-lg border border-primary/30">
+                    <div class="flex items-center gap-3 mb-2">
+                      <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                      <span class="text-xs font-bold text-primary">Agent Type</span>
+                    </div>
+                    <p class="text-xs text-white/60" id="flow-agent-type">Single Prompt Agent</p>
+                  </div>
+                </div>
+                
+                <div class="relative pl-6">
+                  <div class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary/30"></div>
+                  <div class="absolute left-[-4px] top-2 size-2 rounded-full bg-primary"></div>
+                  <div class="glass p-4 rounded-lg border border-primary/30">
+                    <div class="flex items-center gap-3 mb-2">
+                      <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                      <span class="text-xs font-bold text-primary">Quick Start</span>
+                    </div>
+                    <p class="text-xs text-white/60" id="flow-quickstart">Start from Scratch</p>
+                  </div>
+                </div>
+                
+                <div class="relative pl-6">
+                  <div class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary/30"></div>
+                  <div class="absolute left-[-4px] top-2 size-2 rounded-full bg-primary"></div>
+                  <div class="glass p-4 rounded-lg border border-primary/30">
+                    <div class="flex items-center gap-3 mb-2">
+                      <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                      <span class="text-xs font-bold text-primary">Identity & Model</span>
+                    </div>
+                    <p class="text-xs text-white/60" id="flow-identity">Agent configured</p>
+                  </div>
+                </div>
+                
+                <div class="relative pl-6">
+                  <div class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary/30"></div>
+                  <div class="absolute left-[-4px] top-2 size-2 rounded-full bg-primary"></div>
+                  <div class="glass p-4 rounded-lg border border-primary/30">
+                    <div class="flex items-center gap-3 mb-2">
+                      <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                      <span class="text-xs font-bold text-primary">Voice & Acoustics</span>
+                    </div>
+                    <p class="text-xs text-white/60" id="flow-voice">Voice configured</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Add More Components -->
+              <h3 class="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-accent">add_circle</span>
+                Add Components
+              </h3>
+              <div class="space-y-3">
+                <div
+                  draggable="true"
+                  data-type="process"
+                  data-component="knowledge-base"
+                  class="glass p-4 rounded-lg border border-white/10 cursor-move flow-node hover:border-primary transition-all"
+                  ondragstart="dragStart(event)"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="size-10 rounded-lg bg-flow-data/20 border border-flow-data/40 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-flow-data">database</span>
+                    </div>
+                    <div>
+                      <p class="font-bold text-sm">Knowledge Base</p>
+                      <p class="text-xs text-white/40">Add custom data source</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div
+                  draggable="true"
+                  data-type="process"
+                  data-component="api-connector"
+                  class="glass p-4 rounded-lg border border-white/10 cursor-move flow-node hover:border-primary transition-all"
+                  ondragstart="dragStart(event)"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="size-10 rounded-lg bg-flow-process/20 border border-flow-process/40 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-flow-process">api</span>
+                    </div>
+                    <div>
+                      <p class="font-bold text-sm">API Connector</p>
+                      <p class="text-xs text-white/40">External integrations</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div
+                  draggable="true"
+                  data-type="process"
+                  data-component="decision-tree"
+                  class="glass p-4 rounded-lg border border-white/10 cursor-move flow-node hover:border-primary transition-all"
+                  ondragstart="dragStart(event)"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="size-10 rounded-lg bg-flow-decision/20 border border-flow-decision/40 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-flow-decision">account_tree</span>
+                    </div>
+                    <div>
+                      <p class="font-bold text-sm">Decision Tree</p>
+                      <p class="text-xs text-white/40">Complex logic flows</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="mt-8 pt-8 border-t border-white/10">
+                <h3 class="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary">bolt</span>
+                  Quick Actions
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                  <button
+                    onclick="exportConfiguration()"
+                    class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-all"
+                  >
+                    Export
+                  </button>
+                  <button
+                    onclick="testConfiguration()"
+                    class="px-3 py-2 rounded-lg bg-primary/20 hover:bg-primary/30 text-primary text-xs font-bold uppercase tracking-wider transition-all"
+                  >
+                    Test
+                  </button>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Main Canvas: Flow Diagram -->
+          <section class="flex-1 ml-80 mr-96 p-8 overflow-auto">
+            <div class="mb-8">
+              <div class="flex items-center gap-3 mb-4">
+                <span
+                  class="text-xs uppercase tracking-[0.4em] text-primary font-bold"
+                  >Node 03</span
+                >
+                <div class="h-[1px] w-12 bg-primary"></div>
+              </div>
+              <h1 class="text-5xl font-black tracking-tight mb-4">
+                Neural <span class="text-primary">Architecture</span> & Logic Flow
+              </h1>
+              <p class="text-white/50 text-lg max-w-xl">
+                Visualize and modify your agent configuration. All your selections are shown as connected nodes. Drag to rearrange, click to edit.
+              </p>
+            </div>
+
+            <!-- Canvas Tools -->
+            <div class="glass p-4 rounded-xl mb-6 flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="flex gap-2">
+                  <button onclick="resetCanvas()" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-all">
+                    Reset Canvas
+                  </button>
+                  <button onclick="saveFlow()" class="px-4 py-2 rounded-lg bg-primary/20 hover:bg-primary/30 text-primary text-xs font-bold uppercase tracking-wider transition-all">
+                    Save Flow
+                  </button>
+                  <button onclick="autoLayout()" class="px-4 py-2 rounded-lg bg-accent/20 hover:bg-accent/30 text-accent text-xs font-bold uppercase tracking-wider transition-all">
+                    Auto Layout
+                  </button>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-white/40">
+                  <span class="material-symbols-outlined text-sm">drag_indicator</span>
+                  Drag to move • Click to edit
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="zoomOut()" class="size-8 rounded-lg bg-white/5 flex items-center justify-center">
+                  <span class="material-symbols-outlined">remove</span>
+                </button>
+                <span class="text-sm font-bold w-12 text-center" id="zoom-level">100%</span>
+                <button onclick="zoomIn()" class="size-8 rounded-lg bg-white/5 flex items-center justify-center">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Flow Canvas -->
+            <div
+              id="flow-canvas"
+              class="relative w-full h-[600px] canvas-grid rounded-2xl border-2 border-dashed border-white/10 p-8 overflow-hidden"
+              ondragover="dragOver(event)"
+              ondrop="drop(event)"
+            >
+              <!-- Connection Layer -->
+              <svg id="connection-layer" class="absolute inset-0 pointer-events-none"></svg>
+
+              <!-- Configuration Nodes (dynamically generated from agentState) -->
+              <!-- These nodes will be generated by JavaScript based on agentState -->
+            </div>
+
+            <!-- Flow Statistics -->
+            <div class="grid grid-cols-4 gap-4 mt-8">
+              <div class="glass p-4 rounded-xl">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs uppercase tracking-widest text-white/40">Nodes</span>
+                  <span class="material-symbols-outlined text-primary text-sm">hub</span>
+                </div>
+                <p class="text-2xl font-bold" id="node-count">0</p>
+              </div>
+              <div class="glass p-4 rounded-xl">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs uppercase tracking-widest text-white/40">Connections</span>
+                  <span class="material-symbols-outlined text-accent text-sm">link</span>
+                </div>
+                <p class="text-2xl font-bold" id="connection-count">0</p>
+              </div>
+              <div class="glass p-4 rounded-xl">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs uppercase tracking-widest text-white/40">Latency</span>
+                  <span class="material-symbols-outlined text-green-400 text-sm">speed</span>
+                </div>
+                <p class="text-2xl font-bold" id="flow-latency">0ms</p>
+              </div>
+              <div class="glass p-4 rounded-xl">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs uppercase tracking-widest text-white/40">Status</span>
+                  <span class="material-symbols-outlined text-yellow-400 text-sm">device_hub</span>
+                </div>
+                <p class="text-2xl font-bold" id="flow-status">Draft</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Right Sidebar: Node Configuration -->
+          <aside
+            class="fixed right-0 top-24 bottom-0 w-96 border-l border-white/10 bg-background-dark/50 backdrop-blur-xl p-6 overflow-y-auto custom-scrollbar"
+          >
+            <div class="mb-8">
+              <h3 class="text-sm font-bold uppercase tracking-widest mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">tune</span>
+                Configuration Editor
+              </h3>
+              
+              <div id="node-configuration" class="space-y-6">
+                <!-- Default view when no node is selected -->
+                <div class="text-center py-12">
+                  <span class="material-symbols-outlined text-4xl text-white/20 mb-4">touch_app</span>
+                  <p class="text-white/40">Select a node to configure</p>
+                  <p class="text-xs text-white/20 mt-2">Click on any configuration node</p>
+                </div>
+              </div>
+
+              <!-- Configuration templates (hidden by default) -->
+              <div id="config-templates" class="hidden">
+                <!-- Agent Type Configuration -->
+                <div id="config-agent-type" class="space-y-6">
+                  <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-lg">Agent Type</h4>
+                    <span class="text-xs px-2 py-1 rounded bg-flow-config/20 text-flow-config">Type</span>
+                  </div>
+                  
+                  <div class="space-y-4">
+                    <div>
+                      <label class="text-xs uppercase tracking-widest text-white/40 mb-2 block">Agent Type</label>
+                      <select class="w-full bg-[#17181a] border border-white/10 rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none" onchange="updateAgentType(this.value)">
+                        <option value="single">Single Prompt Agent</option>
+                        <option value="conversational">Conversational Flow Agent</option>
+                      </select>
+                    </div>
+                    
+                    <div class="pt-4 border-t border-white/10">
+                      <p class="text-xs text-white/60 mb-2">Description:</p>
+                      <p id="agent-type-desc" class="text-sm text-white/80">Create a focused agent for specific tasks with single-turn interactions</p>
+                    </div>
+                  </div>
+                  
+                  <div class="flex gap-3 pt-4">
+                    <button onclick="removeNode()" class="flex-1 px-4 py-3 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-bold uppercase tracking-wider transition-all">
+                      Remove
+                    </button>
+                    <button onclick="saveNodeConfig()" class="flex-1 px-4 py-3 rounded-lg bg-primary hover:bg-blue-600 text-xs font-bold uppercase tracking-wider transition-all">
+                      Save
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Quick Start Configuration -->
+                <div id="config-quickstart" class="space-y-6">
+                  <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-lg">Quick Start</h4>
+                    <span class="text-xs px-2 py-1 rounded bg-flow-config/20 text-flow-config">Method</span>
+                  </div>
+                  
+                  <div class="space-y-4">
+                    <div>
+                      <label class="text-xs uppercase tracking-widest text-white/40 mb-2 block">Creation Method</label>
+                      <select class="w-full bg-[#17181a] border border-white/10 rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none" onchange="updateQuickStart(this.value)">
+                        <option value="scratch">Start from Scratch</option>
+                        <option value="ai">Create with AI</option>
+                      </select>
+                    </div>
+                    
+                    <div class="pt-4 border-t border-white/10">
+                      <p class="text-xs text-white/60 mb-2">Features:</p>
+                      <ul class="text-xs text-white/80 space-y-1">
+                        <li id="scratch-features" class="flex items-center gap-2">
+                          <span class="material-symbols-outlined text-primary text-sm">check</span>
+                          Full customization control
+                        </li>
+                        <li id="ai-features" class="flex items-center gap-2 hidden">
+                          <span class="material-symbols-outlined text-primary text-sm">check</span>
+                          AI-assisted optimization
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div class="flex gap-3 pt-4">
+                    <button onclick="removeNode()" class="flex-1 px-4 py-3 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-bold uppercase tracking-wider transition-all">
+                      Remove
+                    </button>
+                    <button onclick="saveNodeConfig()" class="flex-1 px-4 py-3 rounded-lg bg-primary hover:bg-blue-600 text-xs font-bold uppercase tracking-wider transition-all">
+                      Save
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Identity Configuration -->
+                <div id="config-identity" class="space-y-6">
+                  <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-lg">Identity & Model</h4>
+                    <span class="text-xs px-2 py-1 rounded bg-flow-process/20 text-flow-process">Core</span>
+                  </div>
+                  
+                  <div class="space-y-4">
+                    <div>
+                      <label class="text-xs uppercase tracking-widest text-white/40 mb-2 block">Agent Name</label>
+                      <input type="text" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none" id="config-agent-name" placeholder="Enter agent name">
+                    </div>
+                    
+                    <div>
+                      <label class="text-xs uppercase tracking-widest text-white/40 mb-2 block">Industry</label>
+                      <select class="w-full bg-[#17181a] border border-white/10 rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none" id="config-industry">
+                        <option>FinTech / Banking</option>
+                        <option>Healthcare / BioTech</option>
+                        <option>E-commerce / Retail</option>
+                        <option>Creative Services</option>
+                        <option>Education</option>
+                        <option>Real Estate</option>
+                        <option>Travel & Hospitality</option>
+                        <option>Technology</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label class="text-xs uppercase tracking-widest text-white/40 mb-2 block">Neural Engine</label>
+                      <select class="w-full bg-[#17181a] border border-white/10 rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none" id="config-engine">
+                        <option value="gpt4">GPT-4 Omni</option>
+                        <option value="gemini">Gemini Pro</option>
+                        <option value="claude">Claude 3 Opus</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="flex gap-3 pt-4">
+                    <button onclick="removeNode()" class="flex-1 px-4 py-3 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-bold uppercase tracking-wider transition-all">
+                      Remove
+                    </button>
+                    <button onclick="saveNodeConfig()" class="flex-1 px-4 py-3 rounded-lg bg-primary hover:bg-blue-600 text-xs font-bold uppercase tracking-wider transition-all">
+                      Save
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Voice Configuration -->
+                <div id="config-voice" class="space-y-6">
+                  <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-lg">Voice & Acoustics</h4>
+                    <span class="text-xs px-2 py-1 rounded bg-flow-output/20 text-flow-output">Output</span>
+                  </div>
+                  
+                  <div class="space-y-4">
+                    <div>
+                      <label class="text-xs uppercase tracking-widest text-white/40 mb-2 block">Voice Profile</label>
+                      <select class="w-full bg-[#17181a] border border-white/10 rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none" id="config-voice-profile">
+                        <option value="elysian">Elysian-4 (Sultry • Professional)</option>
+                        <option value="nova">Nova-X (Dynamic • Energetic)</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label class="text-xs uppercase tracking-widest text-white/40 mb-2 block">Ambient Soundscape</label>
+                      <select class="w-full bg-[#17181a] border border-white/10 rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none" id="config-soundscape">
+                        <option value="cyberpunk">Cyberpunk City Ambient</option>
+                        <option value="office">Office Ambient</option>
+                        <option value="nature">Nature Soundscape</option>
+                        <option value="scifi">Sci-Fi Ambient</option>
+                        <option value="lofi">Lofi Beats</option>
+                      </select>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-bold">Mute Until Response</p>
+                        <p class="text-xs text-white/60">Suppress user input until first bot response</p>
+                      </div>
+                      <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" id="config-mute-toggle">
+                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div class="flex gap-3 pt-4">
+                    <button onclick="removeNode()" class="flex-1 px-4 py-3 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-bold uppercase tracking-wider transition-all">
+                      Remove
+                    </button>
+                    <button onclick="saveNodeConfig()" class="flex-1 px-4 py-3 rounded-lg bg-primary hover:bg-blue-600 text-xs font-bold uppercase tracking-wider transition-all">
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-8 pt-8 border-t border-white/10">
+              <h3 class="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-accent">analytics</span>
+                Flow Preview
+              </h3>
+              <div class="space-y-4">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-white/60">Total Configuration Steps</span>
+                  <span class="text-primary font-bold" id="preview-steps">4</span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-white/60">Estimated Latency</span>
+                  <span class="text-accent font-bold" id="preview-latency">142ms</span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-white/60">Success Rate</span>
+                  <span class="text-green-400 font-bold" id="preview-success">98.4%</span>
+                </div>
+              </div>
+              
+              <button onclick="simulateFlow()" class="w-full mt-6 py-3 bg-accent hover:bg-accent/80 rounded-lg text-xs font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">play_arrow</span>
+                Simulate Flow
+              </button>
+            </div>
+          </aside>
+        </main>
+      </div>
+
+      <script>
+        // Global state management
+        let agentState = {
+          type: "single",
+          quickStart: "scratch",
+          agentName: "",
+          industry: "",
+          useCase: "",
+          engine: "gpt4",
+          language: "English (US)",
+          voice: "elysian",
+          soundscape: "cyberpunk",
+          muteUntilResponse: true,
+          callActions: "Enable All Actions",
+          successMetrics: "Customer Satisfaction (CSAT)",
+        };
+
+        let flowState = {
+          nodes: [],
+          connections: [],
+          selectedNode: null,
+          zoomLevel: 100
+        };
+
+        // Page navigation
+        function showPage(pageNumber) {
+          // Hide all pages
+          document.getElementById("page0").classList.add("hidden");
+          document.getElementById("page1").classList.add("hidden");
+          document.getElementById("page2").classList.add("hidden");
+          document.getElementById("page3").classList.add("hidden");
+
+          // Show requested page
+          if (pageNumber === 0) {
+            document.getElementById("page0").classList.remove("hidden");
+          } else if (pageNumber === 1) {
+            document.getElementById("page1").classList.remove("hidden");
+          } else if (pageNumber === 2) {
+            document.getElementById("page2").classList.remove("hidden");
+          } else if (pageNumber === 3) {
+            document.getElementById("page3").classList.remove("hidden");
+            generateFlowFromConfig();
+            updateFlowSummary();
+          }
+        }
+
+        // Agent creation flow
+        function startAgentCreation() {
+          document.getElementById("agent-type-modal").classList.remove("hidden");
+          document.getElementById("next-to-quickstart").classList.add("hidden");
+        }
+
+        function browseTemplates() {
+          alert("Opening template browser...");
+        }
+
+        function selectAgentType(type) {
+          agentState.type = type;
+          document
+            .getElementById("next-to-quickstart")
+            .classList.remove("hidden");
+
+          // Update UI for selection
+          const singlePrompt = document.querySelector(
+            "[onclick=\"selectAgentType('single')\"]"
+          );
+          const conversational = document.querySelector(
+            "[onclick=\"selectAgentType('conversational')\"]"
+          );
+
+          if (type === "single") {
+            singlePrompt.classList.add("border-primary", "bg-primary/10");
+            conversational.classList.remove("border-primary", "bg-primary/10");
+          } else {
+            conversational.classList.add("border-primary", "bg-primary/10");
+            singlePrompt.classList.remove("border-primary", "bg-primary/10");
+          }
+        }
+
+        function showQuickStart() {
+          document.getElementById("agent-type-modal").classList.add("hidden");
+          document.getElementById("quickstart-modal").classList.remove("hidden");
+          document.getElementById("next-to-scratch").classList.add("hidden");
+        }
+
+        function selectQuickStart(type) {
+          agentState.quickStart = type;
+          document.getElementById("next-to-scratch").classList.remove("hidden");
+
+          // Update UI for selection
+          const scratch = document.querySelector(
+            "[onclick=\"selectQuickStart('scratch')\"]"
+          );
+          const ai = document.querySelector(
+            "[onclick=\"selectQuickStart('ai')\"]"
+          );
+
+          if (type === "scratch") {
+            scratch.classList.add("border-primary", "bg-primary/10");
+            ai.classList.remove("border-primary", "bg-primary/10");
+          } else {
+            ai.classList.add("border-primary", "bg-primary/10");
+            scratch.classList.remove("border-primary", "bg-primary/10");
+          }
+        }
+
+        function showScratchCreation() {
+          document.getElementById("quickstart-modal").classList.add("hidden");
+          showPage(1);
+        }
+
+        function closeAllModals() {
+          document.getElementById("agent-type-modal").classList.add("hidden");
+          document.getElementById("quickstart-modal").classList.add("hidden");
+        }
+
+        // Page 1 Functions
+        function selectEngine(engine) {
+          agentState.engine = engine;
+
+          // Reset all checks
+          document.getElementById("gpt4-check").classList.add("hidden");
+          document.getElementById("gemini-check").classList.add("hidden");
+          document.getElementById("claude-check").classList.add("hidden");
+
+          // Remove border from all cards
+          document.querySelectorAll(".glass-card").forEach((card) => {
+            card.classList.remove("border-primary");
+            card.classList.add("border-white/10");
+          });
+
+          // Add check and border to selected
+          document.getElementById(`${engine}-check`).classList.remove("hidden");
+          const selectedCard = document.querySelector(
+            `[onclick="selectEngine('${engine}')"]`
+          );
+          selectedCard.classList.remove("border-white/10");
+          selectedCard.classList.add("border-primary");
+        }
+
+        function addSpecialization() {
+          const specializations = [
+            "Sales Conversion",
+            "Technical Support",
+            "Data Analytics",
+            "Creative Writing",
+            "Multilingual Support",
+            "Emotional Intelligence",
+          ];
+          const randomSpec =
+            specializations[Math.floor(Math.random() * specializations.length)];
+
+          const newSpec = document.createElement("div");
+          newSpec.className =
+            "bg-primary/20 border border-primary/50 text-primary px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2";
+          newSpec.innerHTML = `${randomSpec} <span onclick="removeSpecialization(this)" class="material-symbols-outlined text-sm cursor-pointer">close</span>`;
+
+          const container = document.getElementById("specializations-container");
+          container.insertBefore(newSpec, container.lastElementChild);
+        }
+
+        function removeSpecialization(element) {
+          element.parentElement.remove();
+        }
+
+        function saveDraft() {
+          agentState.agentName = document.getElementById("agent-name").value;
+          agentState.industry = document.getElementById("industry").value;
+          agentState.useCase = document.getElementById("use-case").value;
+          agentState.language = document.getElementById("language").value;
+
+          alert("Draft saved successfully!");
+        }
+
+        // Page 2 Functions
+        function selectVoice(voice) {
+          agentState.voice = voice;
+
+          if (voice === "elysian") {
+            document
+              .getElementById("voice-elysian")
+              .classList.add("bg-primary/20", "border-primary/40");
+            document
+              .getElementById("voice-nova")
+              .classList.remove("bg-primary/20", "border-primary/40");
+            document
+              .getElementById("voice-nova")
+              .classList.add("bg-white/5", "border-white/10");
+          } else {
+            document
+              .getElementById("voice-nova")
+              .classList.add("bg-primary/20", "border-primary/40");
+            document
+              .getElementById("voice-elysian")
+              .classList.remove("bg-primary/20", "border-primary/40");
+            document
+              .getElementById("voice-elysian")
+              .classList.add("bg-white/5", "border-white/10");
+          }
+        }
+
+        function selectSoundscape(type) {
+          agentState.soundscape = type;
+          const soundscapes = {
+            office: "OFFICE AMBIENT",
+            nature: "NATURE SOUNDSCAPE",
+            scifi: "SCI-FI AMBIENT",
+            lofi: "LOFI BEATS",
+          };
+
+          document.getElementById("current-soundscape").textContent =
+            soundscapes[type] || "CYBERPUNK CITY AMBIENT";
+
+          // Update all soundscape buttons
+          document
+            .querySelectorAll('[onclick^="selectSoundscape"]')
+            .forEach((btn) => {
+              btn.classList.remove("opacity-40");
+              btn
+                .querySelector(".size-10")
+                .classList.remove("bg-primary/20", "border-primary");
+              btn
+                .querySelector(".size-10")
+                .classList.add("bg-white/10", "border-white/20");
+              btn
+                .querySelector("span:last-child")
+                .classList.remove("text-primary");
+              btn.querySelector("span:last-child").classList.add("font-bold");
+            });
+
+          // Highlight selected
+          const selectedBtn = document.querySelector(
+            `[onclick="selectSoundscape('${type}')"]`
+          );
+          selectedBtn.classList.remove("opacity-40");
+          selectedBtn
+            .querySelector(".size-10")
+            .classList.remove("bg-white/10", "border-white/20");
+          selectedBtn
+            .querySelector(".size-10")
+            .classList.add("bg-primary/20", "border-primary");
+          selectedBtn
+            .querySelector("span:last-child")
+            .classList.add("text-primary");
+        }
+
+        function saveAgent() {
+          agentState.muteUntilResponse =
+            document.getElementById("mute-toggle").checked;
+          agentState.callActions = document.getElementById("call-actions").value;
+          agentState.successMetrics =
+            document.getElementById("success-metrics").value;
+
+          alert("Agent configuration saved!");
+        }
+
+        // Page 3: Neural Architecture Functions
+
+        function generateFlowFromConfig() {
+          const canvas = document.getElementById('flow-canvas');
+          canvas.innerHTML = '<svg id="connection-layer" class="absolute inset-0 pointer-events-none"></svg>';
+          flowState.nodes = [];
+          
+          // Create nodes based on agentState
+          const nodes = [
+            {
+              id: 'agent-type',
+              type: 'config',
+              title: 'Agent Type',
+              content: agentState.type === 'single' ? 'Single Prompt Agent' : 'Conversational Flow Agent',
+              data: { step: 'agent-type', value: agentState.type },
+              x: 15, y: 30,
+              color: 'flow-config'
+            },
+            {
+              id: 'quickstart',
+              type: 'config',
+              title: 'Quick Start',
+              content: agentState.quickStart === 'scratch' ? 'Start from Scratch' : 'Create with AI',
+              data: { step: 'quickstart', value: agentState.quickStart },
+              x: 15, y: 50,
+              color: 'flow-config'
+            },
+            {
+              id: 'identity',
+              type: 'config',
+              title: 'Identity & Model',
+              content: `${agentState.agentName || 'Unnamed Agent'}<br>${agentState.industry || 'No Industry'}`,
+              data: { step: 'identity', value: agentState },
+              x: 50, y: 50,
+              color: 'flow-process'
+            },
+            {
+              id: 'voice',
+              type: 'config',
+              title: 'Voice & Acoustics',
+              content: `${agentState.voice === 'elysian' ? 'Elysian-4' : 'Nova-X'}<br>${agentState.soundscape || 'Cyberpunk'}`,
+              data: { step: 'voice', value: agentState },
+              x: 85, y: 50,
+              color: 'flow-output'
+            }
+          ];
+
+          // Create connections
+          flowState.connections = [
+            { from: 'agent-type', to: 'quickstart' },
+            { from: 'quickstart', to: 'identity' },
+            { from: 'identity', to: 'voice' }
+          ];
+
+          // Create node elements
+          nodes.forEach(node => {
+            createNodeElement(node);
+          });
+
+          // Create connections
+          drawConnections();
+
+          // Update flow summary
+          updateFlowSummary();
+          updateFlowStats();
+        }
+
+        function createNodeElement(node) {
+          const nodeElement = document.createElement('div');
+          nodeElement.id = node.id;
+          nodeElement.className = `flow-node absolute glass p-4 rounded-xl border-2 border-${node.color}/30 w-56 cursor-move`;
+          nodeElement.style.left = `${node.x}%`;
+          nodeElement.style.top = `${node.y}%`;
+          nodeElement.onclick = () => selectNode(node.id);
+          
+          // Add tag
+          const tag = document.createElement('div');
+          tag.className = `node-tag bg-${node.color} text-white`;
+          tag.textContent = node.title.split(' ')[0];
+          
+          // Add content
+          const content = document.createElement('div');
+          content.className = 'mt-4';
+          content.innerHTML = `
+            <div class="flex items-center gap-3 mb-3">
+              <div class="size-10 rounded-lg bg-${node.color}/20 border border-${node.color}/40 flex items-center justify-center">
+                <span class="material-symbols-outlined text-${node.color}">${getNodeIcon(node.type)}</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-sm">${node.title}</h3>
+                <p class="text-[10px] text-white/40 uppercase">${node.type.toUpperCase()}</p>
+              </div>
+            </div>
+            <div class="text-xs text-white/60 leading-relaxed">${node.content}</div>
+          `;
+          
+          nodeElement.appendChild(tag);
+          nodeElement.appendChild(content);
+          
+          // Add to canvas
+          document.getElementById('flow-canvas').appendChild(nodeElement);
+          
+          // Add to flow state
+          flowState.nodes.push({
+            ...node,
+            element: nodeElement
+          });
+          
+          // Make draggable
+          makeDraggable(nodeElement, node.id);
+        }
+
+        function getNodeIcon(type) {
+          const icons = {
+            'config': 'settings',
+            'process': 'psychology',
+            'output': 'volume_up',
+            'input': 'input'
+          };
+          return icons[type] || 'widgets';
+        }
+
+        function makeDraggable(element, nodeId) {
+          let isDragging = false;
+          let offsetX, offsetY;
+          
+          element.addEventListener('mousedown', startDrag);
+          
+          function startDrag(e) {
+            if (e.target.classList.contains('connection-handle')) return;
+            
+            isDragging = true;
+            offsetX = e.clientX - element.getBoundingClientRect().left;
+            offsetY = e.clientY - element.getBoundingClientRect().top;
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+          }
+          
+          function drag(e) {
+            if (!isDragging) return;
+            
+            const canvas = document.getElementById('flow-canvas');
+            const rect = canvas.getBoundingClientRect();
+            
+            let x = ((e.clientX - rect.left - offsetX) / rect.width) * 100;
+            let y = ((e.clientY - rect.top - offsetY) / rect.height) * 100;
+            
+            // Keep within canvas bounds
+            x = Math.max(5, Math.min(x, 95));
+            y = Math.max(5, Math.min(y, 95));
+            
+            element.style.left = `${x}%`;
+            element.style.top = `${y}%`;
+            
+            // Update flow state
+            const nodeIndex = flowState.nodes.findIndex(n => n.id === nodeId);
+            if (nodeIndex !== -1) {
+              flowState.nodes[nodeIndex].x = x;
+              flowState.nodes[nodeIndex].y = y;
+            }
+            
+            // Redraw connections
+            drawConnections();
+          }
+          
+          function stopDrag() {
+            isDragging = false;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+          }
+        }
+
+        function drawConnections() {
+          const svg = document.getElementById('connection-layer');
+          svg.innerHTML = '';
+          
+          flowState.connections.forEach(conn => {
+            const fromNode = flowState.nodes.find(n => n.id === conn.from);
+            const toNode = flowState.nodes.find(n => n.id === conn.to);
+            
+            if (fromNode && toNode) {
+              const fromRect = fromNode.element.getBoundingClientRect();
+              const toRect = toNode.element.getBoundingClientRect();
+              const canvasRect = document.getElementById('flow-canvas').getBoundingClientRect();
+              
+              const x1 = fromRect.left - canvasRect.left + fromRect.width;
+              const y1 = fromRect.top - canvasRect.top + fromRect.height / 2;
+              const x2 = toRect.left - canvasRect.left;
+              const y2 = toRect.top - canvasRect.top + toRect.height / 2;
+              
+              // Create curved path
+              const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              const curveStrength = 100;
+              const d = `M ${x1} ${y1} C ${x1 + curveStrength} ${y1}, ${x2 - curveStrength} ${y2}, ${x2} ${y2}`;
+              
+              path.setAttribute('d', d);
+              path.setAttribute('fill', 'none');
+              path.setAttribute('stroke', 'url(#gradient)');
+              path.setAttribute('stroke-width', '2');
+              path.setAttribute('stroke-dasharray', '5');
+              path.classList.add('animated-path');
+              
+              // Add gradient
+              const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+              const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+              gradient.id = 'gradient';
+              gradient.setAttribute('x1', '0%');
+              gradient.setAttribute('y1', '0%');
+              gradient.setAttribute('x2', '100%');
+              gradient.setAttribute('y2', '0%');
+              
+              const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+              stop1.setAttribute('offset', '0%');
+              stop1.setAttribute('stop-color', '#8b5cf6');
+              
+              const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+              stop2.setAttribute('offset', '100%');
+              stop2.setAttribute('stop-color', '#137fec');
+              
+              gradient.appendChild(stop1);
+              gradient.appendChild(stop2);
+              defs.appendChild(gradient);
+              
+              svg.appendChild(defs);
+              svg.appendChild(path);
+            }
+          });
+        }
+
+        function selectNode(nodeId) {
+          // Remove selection from all nodes
+          flowState.nodes.forEach(node => {
+            node.element.classList.remove('selected');
+          });
+          
+          // Add selection to clicked node
+          const node = flowState.nodes.find(n => n.id === nodeId);
+          if (node) {
+            node.element.classList.add('selected');
+            flowState.selectedNode = nodeId;
+            showNodeConfiguration(node);
+          }
+        }
+
+        function showNodeConfiguration(node) {
+          const configPanel = document.getElementById('node-configuration');
+          
+          let templateId = '';
+          switch(node.id) {
+            case 'agent-type':
+              templateId = 'config-agent-type';
+              break;
+            case 'quickstart':
+              templateId = 'config-quickstart';
+              break;
+            case 'identity':
+              templateId = 'config-identity';
+              break;
+            case 'voice':
+              templateId = 'config-voice';
+              break;
+          }
+          
+          if (templateId) {
+            const template = document.getElementById(templateId).cloneNode(true);
+            template.id = '';
+            template.classList.remove('hidden');
+            
+            // Populate with current values
+            switch(node.id) {
+              case 'agent-type':
+                template.querySelector('select').value = agentState.type;
+                updateAgentType(agentState.type);
+                break;
+              case 'quickstart':
+                template.querySelector('select').value = agentState.quickStart;
+                updateQuickStart(agentState.quickStart);
+                break;
+              case 'identity':
+                template.querySelector('#config-agent-name').value = agentState.agentName || '';
+                template.querySelector('#config-industry').value = agentState.industry || '';
+                template.querySelector('#config-engine').value = agentState.engine;
+                break;
+              case 'voice':
+                template.querySelector('#config-voice-profile').value = agentState.voice;
+                template.querySelector('#config-soundscape').value = agentState.soundscape;
+                template.querySelector('#config-mute-toggle').checked = agentState.muteUntilResponse;
+                break;
+            }
+            
+            configPanel.innerHTML = '';
+            configPanel.appendChild(template);
+          }
+        }
+
+        function updateAgentType(type) {
+          const desc = document.getElementById('agent-type-desc');
+          if (type === 'single') {
+            desc.textContent = 'Create a focused agent for specific tasks with single-turn interactions';
+          } else {
+            desc.textContent = 'Create multi-turn conversational agents with complex interaction flows';
+          }
+        }
+
+        function updateQuickStart(type) {
+          const scratchFeatures = document.getElementById('scratch-features');
+          const aiFeatures = document.getElementById('ai-features');
+          
+          if (type === 'scratch') {
+            scratchFeatures.classList.remove('hidden');
+            aiFeatures.classList.add('hidden');
+          } else {
+            scratchFeatures.classList.add('hidden');
+            aiFeatures.classList.remove('hidden');
+          }
+        }
+
+        function saveNodeConfig() {
+          const nodeId = flowState.selectedNode;
+          if (!nodeId) return;
+          
+          const node = flowState.nodes.find(n => n.id === nodeId);
+          
+          switch(nodeId) {
+            case 'agent-type':
+              agentState.type = document.querySelector('select').value;
+              node.content = agentState.type === 'single' ? 'Single Prompt Agent' : 'Conversational Flow Agent';
+              break;
+            case 'quickstart':
+              agentState.quickStart = document.querySelector('select').value;
+              node.content = agentState.quickStart === 'scratch' ? 'Start from Scratch' : 'Create with AI';
+              break;
+            case 'identity':
+              agentState.agentName = document.querySelector('#config-agent-name').value;
+              agentState.industry = document.querySelector('#config-industry').value;
+              agentState.engine = document.querySelector('#config-engine').value;
+              node.content = `${agentState.agentName || 'Unnamed Agent'}<br>${agentState.industry || 'No Industry'}`;
+              break;
+            case 'voice':
+              agentState.voice = document.querySelector('#config-voice-profile').value;
+              agentState.soundscape = document.querySelector('#config-soundscape').value;
+              agentState.muteUntilResponse = document.querySelector('#config-mute-toggle').checked;
+              node.content = `${agentState.voice === 'elysian' ? 'Elysian-4' : 'Nova-X'}<br>${agentState.soundscape || 'Cyberpunk'}`;
+              break;
+          }
+          
+          // Update node display
+          const nodeElement = document.getElementById(nodeId);
+          const contentDiv = nodeElement.querySelector('.text-xs.text-white/60');
+          if (contentDiv) {
+            contentDiv.innerHTML = node.content;
+          }
+          
+          // Update flow summary
+          updateFlowSummary();
+          
+          alert('Configuration updated!');
+        }
+
+        function removeNode() {
+          const nodeId = flowState.selectedNode;
+          if (nodeId && confirm('Are you sure you want to remove this configuration step?')) {
+            // Remove node from DOM
+            const nodeElement = document.getElementById(nodeId);
+            if (nodeElement) {
+              nodeElement.remove();
+            }
+            
+            // Remove from flow state
+            flowState.nodes = flowState.nodes.filter(n => n.id !== nodeId);
+            flowState.connections = flowState.connections.filter(conn => 
+              conn.from !== nodeId && conn.to !== nodeId
+            );
+            
+            // Redraw connections
+            drawConnections();
+            
+            // Reset configuration panel
+            document.getElementById('node-configuration').innerHTML = `
+              <div class="text-center py-12">
+                <span class="material-symbols-outlined text-4xl text-white/20 mb-4">touch_app</span>
+                <p class="text-white/40">Select a node to configure</p>
+                <p class="text-xs text-white/20 mt-2">Click on any configuration node</p>
+              </div>
+            `;
+            
+            flowState.selectedNode = null;
+            updateFlowStats();
+          }
+        }
+
+        function updateFlowSummary() {
+          // Update timeline
+          document.getElementById('flow-agent-type').textContent = 
+            agentState.type === 'single' ? 'Single Prompt Agent' : 'Conversational Flow Agent';
+          document.getElementById('flow-quickstart').textContent = 
+            agentState.quickStart === 'scratch' ? 'Start from Scratch' : 'Create with AI';
+          document.getElementById('flow-identity').textContent = 
+            agentState.agentName ? `${agentState.agentName} • ${agentState.industry}` : 'Agent configured';
+          document.getElementById('flow-voice').textContent = 
+            agentState.voice === 'elysian' ? 'Elysian-4 Voice • Cyberpunk' : 'Nova-X Voice • Cyberpunk';
+            
+          // Update preview
+          document.getElementById('preview-steps').textContent = flowState.nodes.length;
+          document.getElementById('preview-latency').textContent = `${50 + (flowState.nodes.length * 20)}ms`;
+          document.getElementById('preview-success').textContent = '98.4%';
+        }
+
+        function updateFlowStats() {
+          document.getElementById('node-count').textContent = flowState.nodes.length;
+          document.getElementById('connection-count').textContent = flowState.connections.length;
+          document.getElementById('flow-latency').textContent = `${50 + (flowState.nodes.length * 20)}ms`;
+          document.getElementById('flow-status').textContent = flowState.nodes.length > 0 ? 'Configured' : 'Draft';
+        }
+
+        // Drag and Drop for adding new components
+        let draggedElement = null;
+
+        function dragStart(event) {
+          draggedElement = event.target;
+          event.dataTransfer.setData('text/plain', event.target.dataset.component);
+          event.target.classList.add('dragging');
+        }
+
+        function dragOver(event) {
+          event.preventDefault();
+          event.currentTarget.classList.add('drop-zone', 'active');
+        }
+
+        function drop(event) {
+          event.preventDefault();
+          event.currentTarget.classList.remove('drop-zone', 'active');
+          
+          if (draggedElement) {
+            const componentType = draggedElement.dataset.component;
+            const componentName = draggedElement.querySelector('p.font-bold').textContent;
+            const componentDesc = draggedElement.querySelector('p.text-xs').textContent;
+            const nodeType = draggedElement.dataset.type;
+            
+            // Calculate drop position
+            const canvas = document.getElementById('flow-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / rect.width) * 100;
+            const y = ((event.clientY - rect.top) / rect.height) * 100;
+            
+            // Create new node
+            const nodeId = `node-${componentType}-${Date.now()}`;
+            const colors = {
+              'process': { bg: 'flow-data', border: 'border-flow-data' },
+              'input': { bg: 'flow-input', border: 'border-flow-input' },
+              'output': { bg: 'flow-output', border: 'border-flow-output' }
+            };
+            
+            const color = colors[nodeType] || { bg: 'primary', border: 'border-primary' };
+            
+            const node = {
+              id: nodeId,
+              type: nodeType,
+              title: componentName,
+              content: componentDesc,
+              data: { component: componentType },
+              x: x,
+              y: y,
+              color: color.bg.split('-')[1]
+            };
+            
+            createNodeElement(node);
+            
+            // Add connection to previous node
+            if (flowState.nodes.length > 1) {
+              const lastNode = flowState.nodes[flowState.nodes.length - 2];
+              flowState.connections.push({ from: lastNode.id, to: nodeId });
+              drawConnections();
+            }
+            
+            draggedElement.classList.remove('dragging');
+            draggedElement = null;
+            
+            updateFlowStats();
+            updateFlowSummary();
+          }
+        }
+
+        function resetCanvas() {
+          if (confirm('Reset canvas to default configuration?')) {
+            generateFlowFromConfig();
+          }
+        }
+
+        function saveFlow() {
+          alert('Flow configuration saved successfully!');
+        }
+
+        function autoLayout() {
+          // Simple auto-layout - arrange nodes in a horizontal line
+          flowState.nodes.forEach((node, index) => {
+            const x = 15 + (index * 25);
+            const y = 30 + (index % 2 * 20);
+            
+            node.x = x;
+            node.y = y;
+            node.element.style.left = `${x}%`;
+            node.element.style.top = `${y}%`;
+          });
+          
+          drawConnections();
+          alert('Auto-layout applied');
+        }
+
+        function zoomIn() {
+          if (flowState.zoomLevel < 200) {
+            flowState.zoomLevel += 10;
+            updateZoom();
+          }
+        }
+
+        function zoomOut() {
+          if (flowState.zoomLevel > 50) {
+            flowState.zoomLevel -= 10;
+            updateZoom();
+          }
+        }
+
+        function updateZoom() {
+          document.getElementById('zoom-level').textContent = `${flowState.zoomLevel}%`;
+          const canvas = document.getElementById('flow-canvas');
+          canvas.style.transform = `scale(${flowState.zoomLevel / 100})`;
+        }
+
+        function exportConfiguration() {
+          const config = {
+            agentState: agentState,
+            flowState: {
+              nodes: flowState.nodes.map(n => ({ id: n.id, type: n.type, title: n.title })),
+              connections: flowState.connections
+            }
+          };
+          
+          alert('Configuration exported to clipboard!');
+          console.log('Configuration:', config);
+        }
+
+        function testConfiguration() {
+          alert('Testing configuration... Simulation started.');
+        }
+
+        function simulateFlow() {
+          alert('Flow simulation running... All configurations are valid.');
+        }
+
+        function completeAgent() {
+          // Save all data
+          agentState.agentName = agentState.agentName || "Unnamed Agent";
+          
+          alert(
+            `Agent "${agentState.agentName}" created successfully!\n\nConfiguration Summary:\n• Type: ${agentState.type === 'single' ? 'Single Prompt' : 'Conversational'}\n• Creation: ${agentState.quickStart === 'scratch' ? 'From Scratch' : 'AI Assisted'}\n• Engine: ${agentState.engine}\n• Voice: ${agentState.voice === 'elysian' ? 'Elysian-4' : 'Nova-X'}\n• Industry: ${agentState.industry || 'Not specified'}\n• Flow Nodes: ${flowState.nodes.length}`
+          );
+
+          showPage(0);
+        }
+
+        function documentation() {
+          alert("Opening documentation...");
+        }
+
+        // Initialize
+        document.addEventListener("DOMContentLoaded", function () {
+          showPage(0); // Start with Agent Builder Dashboard
+          
+          // Set default values for testing
+          agentState.agentName = "Aetheris-One";
+          agentState.industry = "Customer Support";
+          agentState.useCase = "Technical Support";
+          
+          // Initialize with sample data
+          updateFlowSummary();
+        });
+      </script>
+    </body>
+  </html>
