@@ -1,56 +1,45 @@
-<h1 align="center">🤖 AgentBuilder & Conversational Journey Portal</h1>
+# AgentBuilder & Conversational Journey Portal
 
-<p align="center">
-  <b>Visual Workflow Builder for Voice AI Agents, Campaign Orchestration & Live Escalations</b>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/React.js-18+-blue?style=for-the-badge&logo=react" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-Modern_UI-teal?style=for-the-badge&logo=tailwind-css" />
-  <img src="https://img.shields.io/badge/FastAPI-Backend_Services-009688?style=for-the-badge&logo=fastapi" />
-  <img src="https://img.shields.io/badge/WebSockets-Live_Streaming-black?style=for-the-badge&logo=socket.io" />
-</p>
+**Enterprise Visual Workflow Designer for AI Voice Agents & Campaign Orchestration**
 
 ---
 
-## 📌 Overview
-**AgentBuilder** is an enterprise visual workflow designer and campaign management portal. It enables teams to configure multi-turn voice and chat AI agent journeys, upload campaign data, schedule intelligent best-time retry logic (+10–15% engagement), and trigger live agent handoffs with full conversation context.
+### Overview
+AgentBuilder is a visual workflow designer and campaign operations portal built for configuring multi-turn voice and chat AI agent interactions. It provides teams with visual drag-and-drop routing, campaign data ingestion, intelligent best-time retry scheduling, and seamless live-agent escalation with full conversation context.
 
-## ✨ Key Features
-- **Visual Flow Orchestration:** Drag-and-drop conversational nodes for intent routing, FAQ fallbacks, and multi-turn dialog.
-- **Intelligent Batch Scheduling:** Optimizes dispatch based on GPU concurrency limits and best-time pickup predictions.
-- **Live Agent Escalation:** Real-time transfer to human agents preserving audio transcripts, disposition history, and sentiment scores.
-- **Micro-Frontend Architecture:** Modular, independently deployable components reducing bundle size and release cycles.
+---
 
-## 🛠️ Tech Stack
-- **Frontend:** React.js, Tailwind CSS, Lucide Icons, React Flow
-- **Backend:** Python, FastAPI, WebSockets, REST APIs
-- **Database & Queue:** MySQL, Redis Queue / Celery
-- **DevOps:** Docker, AWS ECS
+### Key Capabilities
 
-## ⚡ Quick Start
+* **Visual Flow Design:** Node-based workflow configuration for intent routing, conversational branching, and fallback handling.
+* **Batch Scheduling Engine:** Dynamic dispatch respecting GPU concurrency boundaries (500+ concurrent calls) with automated retry queues.
+* **Contextual Agent Transfer:** Real-time transfer to human support agents preserving transcripts, sentiment history, and intent classifications.
+* **Micro-Frontend Architecture:** Decoupled, independently deployable UI modules reducing bundle size and deployment cycle overhead.
 
-### 1. Clone & Install Frontend
+---
+
+### Technical Stack
+
+* **Frontend:** React.js, JavaScript (ES6+), Tailwind CSS, Lucide
+* **Backend Services:** Python, FastAPI, WebSockets, REST APIs
+* **Database & Queuing:** MySQL, SQLite, Redis Queue
+* **Infrastructure:** Docker, AWS ECS
+
+---
+
+### Getting Started
+
 ```bash
+# Clone and install frontend
 git clone https://github.com/Gurudass/Agentbuilder.git
 cd Agentbuilder
 npm install
 npm run dev
 ```
 
-### 2. Backend Setup (if running local API)
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
 ---
 
-## 👨‍💻 Author
+### Author
 **Guru Das**  
-Senior Full-Stack & GenAI Engineer  
-- GitHub: [@Gurudass](https://github.com/Gurudass)  
-- LinkedIn: [Guru Das](https://linkedin.com)
+Senior Full-Stack & Generative AI Engineer  
+[GitHub Profile](https://github.com/Gurudass)
